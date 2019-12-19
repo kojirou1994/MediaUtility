@@ -9,7 +9,7 @@ public struct MkvmergeIdentification: Decodable {
     public var container: Container
     public var errors: [String]
     public var fileName: String
-    public var globalTags: [GlobalTag]
+    public var globalTags: [GlobalTag]?
     public var identificationFormatVersion: Int
     public var trackTags: [TrackTag]
     public var tracks: [Track]
@@ -264,8 +264,8 @@ extension MkvmergeIdentification {
     
     public init(filePath: String) throws {
         self = try autoreleasepool {
-            let mkvmerge = try AnyExecutable(executableName: "mkvmerge", arguments: ["-J", filePath]).runAndCatch(checkNonZeroExitCode: true)
-            return try jsonDecoder.decode(Self.self, from: mkvmerge.stdout)
+            let mkvmerge = try AnyExecutable(executableName: "mkvmerge", arguments: ["-J", filePath]).runTSC().output.get()
+            return try jsonDecoder.kwiftDecode(from: mkvmerge)
         }
     }
     

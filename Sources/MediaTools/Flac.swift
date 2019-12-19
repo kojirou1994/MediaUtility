@@ -51,8 +51,8 @@ public struct FlacEncoder: Executable {
 public struct FlacMD5 {
     
     public static func calculate(inputs: [String]) throws -> [String] {
-        let md5 = try AnyExecutable(executableName: "metaflac", arguments: ["--no-filename", "--show-md5sum"] + inputs).runAndCatch(checkNonZeroExitCode: true)
-        return md5.stdout.split(separator: UInt8.init(ascii: "\n")).map {String(decoding: $0, as: UTF8.self)}
+        let md5 = try AnyExecutable(executableName: "metaflac", arguments: ["--no-filename", "--show-md5sum"] + inputs).runTSC().output.get()
+        return md5.split(separator: UInt8(ascii: "\n")).map {String(decoding: $0, as: UTF8.self)}
     }
     
 }

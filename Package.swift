@@ -13,7 +13,8 @@ let package = Package(
             targets: ["MediaTools"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/kojirou1994/Kwift.git", from: "0.3.1")
+        .package(url: "https://github.com/kojirou1994/Kwift.git", from: "0.4.0"),
+        .package(url: "git@github.com:kojirou1994/Executable.git", .branch("master"))
     ],
     targets: [
         .target(
@@ -25,6 +26,6 @@ let package = Package(
         ),
         .testTarget(
             name: "MediaUtilityTests",
-            dependencies: ["MediaUtility"]),
+            dependencies: ["MediaUtility", "MediaTools"]),
     ]
 )
