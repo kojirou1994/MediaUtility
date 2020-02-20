@@ -1,4 +1,4 @@
-public struct TimedText: Equatable {
+public struct TimedText: Equatable, Hashable {
     
     public let startTime: Timestamp
     

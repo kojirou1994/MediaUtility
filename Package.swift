@@ -13,7 +13,7 @@ let package = Package(
             targets: ["MediaTools"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/kojirou1994/Kwift.git", from: "0.4.0"),
+        .package(url: "https://github.com/kojirou1994/Kwift.git", from: "0.5.0"),
         .package(url: "git@github.com:kojirou1994/Executable.git", from: "0.0.1")
     ],
     targets: [
