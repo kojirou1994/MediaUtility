@@ -6,10 +6,25 @@ public struct Mkvmerge: Executable {
     public let global: GlobalOption
     
     public struct GlobalOption {
+
+        // 2.1. Global options
+        public var verbose: Bool
         public var quiet: Bool
         public var webm: Bool
         public var title: String
         public var defaultLanguage: String?
+
+        // 2.2. Segment info handling (global options)
+        // invalie now
+
+        // 2.3. Chapter and tag handling (global options)
+        public var chapterLanguage: String?
+        public var chapterFile: String?
+
+        // 2.4. General output control (advanced global options)
+        public var trackOrder: [TrackOrder]?
+
+        // 2.5. File splitting, linking, appending and concatenation (more global options)
         public var split: Split?
         public enum Split {
             /// size in bytes
@@ -21,7 +36,6 @@ public struct Mkvmerge: Executable {
                 case numbers([Int])
             }
         }
-        public var trackOrder: [TrackOrder]?
         public struct TrackOrder {
             public let fid: Int
             public let tid: Int
@@ -31,20 +45,27 @@ public struct Mkvmerge: Executable {
                 self.tid = tid
             }
         }
-        public var chapterFile: String?
-        
-        public init(quiet: Bool, webm: Bool = false, title: String = "", defaultLanguage: String? = nil, split: Split? = nil, trackOrder: [TrackOrder]? = nil, chapterFile: String? = nil) {
+
+        public init(verbose: Bool = false, quiet: Bool, webm: Bool = false,
+                    title: String = "", defaultLanguage: String? = nil,
+                    split: Split? = nil, trackOrder: [TrackOrder]? = nil,
+                    chapterLanguage: String? = nil, chapterFile: String? = nil) {
+            self.verbose = verbose
             self.quiet = quiet
             self.webm = webm
             self.title = title
             self.defaultLanguage = defaultLanguage
             self.split = split
             self.trackOrder = trackOrder
+            self.chapterLanguage = chapterLanguage
             self.chapterFile = chapterFile
         }
         
         var arguments: [String] {
             var r = [String]()
+            if verbose {
+                r.append("--verbose")
+            }
             if quiet {
                 r.append("--quiet")
             }
@@ -58,6 +79,10 @@ public struct Mkvmerge: Executable {
             if let to = trackOrder, !to.isEmpty {
                 r.append("--track-order")
                 r.append(to.map{$0.argument}.joined(separator: ","))
+            }
+            if let c = chapterLanguage, !c.isEmpty {
+                r.append("--chapter-language")
+                r.append(c)
             }
             if let c = chapterFile, !c.isEmpty {
                 r.append("--chapters")
