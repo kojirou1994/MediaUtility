@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.2
 
 import PackageDescription
 
@@ -19,7 +19,7 @@ let package = Package(
     targets: [
         .target(
             name: "MediaUtility",
-            dependencies: ["KwiftExtension"]),
+            dependencies: [.product(name: "KwiftExtension", package: "Kwift")]),
         .target(
             name: "MediaTools",
             dependencies: ["Executable", "MediaUtility"]
