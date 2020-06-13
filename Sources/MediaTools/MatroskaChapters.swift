@@ -76,4 +76,8 @@ public struct MatroskaChapters: Codable, Equatable {
       }
     }
   }
+
+  public func exportXML() throws -> Data {
+    try XMLEncoder().encode(self, withRootKey: "Chapters")
+  }
 }
