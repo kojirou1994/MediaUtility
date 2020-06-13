@@ -17,7 +17,8 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/kojirou1994/Kwift.git", .upToNextMinor(from: "0.6.0")),
-    .package(url: "git@github.com:kojirou1994/Executable.git", from: "0.0.1")
+    .package(url: "git@github.com:kojirou1994/Executable.git", from: "0.0.1"),
+    .package(url: "https://github.com/ShawnMoore/XMLParsing.git", from: "0.0.3")
   ],
   targets: [
     .target(
@@ -25,7 +26,7 @@ let package = Package(
       dependencies: [.product(name: "KwiftExtension", package: "Kwift")]),
     .target(
       name: "MediaTools",
-      dependencies: ["Executable", "MediaUtility"]
+      dependencies: ["Executable", "MediaUtility", "XMLParsing"]
     ),
     .testTarget(
       name: "MediaUtilityTests",

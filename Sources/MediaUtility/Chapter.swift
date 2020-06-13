@@ -86,7 +86,7 @@ public struct Chapter {
   }
 
   public func exportOgm() -> String {
-    return nodes.enumerated().map { node -> String in
+    nodes.enumerated().map { node -> String in
       let index = padding(number: node.offset + 1)
       return """
         CHAPTER\(index)=\(node.element.timestamp.description)
@@ -97,7 +97,14 @@ public struct Chapter {
 
   @inlinable
   public var isEmpty: Bool {
-    nodes.count <= 1
+    switch nodes.count {
+    case 0:
+      return true
+    case 1:
+      return nodes[0].timestamp.value == 0
+    default:
+      return false
+    }
   }
 
 }

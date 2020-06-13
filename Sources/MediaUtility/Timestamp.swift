@@ -10,10 +10,10 @@ public struct Timestamp: LosslessStringConvertible {
   }
 
   @inlinable
-  public init(hour: UInt64, minute: UInt64, second: UInt64, milesecond: UInt64)
+  public init(hour: UInt64, minute: UInt64, second: UInt64, milesecond: UInt64, nanosecond: UInt64 = 0)
   {
     value =
-      ((hour * 3_600 + minute * 60 + second) * 1_000 + milesecond) * 1_000_000
+      ((hour * 3_600 + minute * 60 + second) * 1_000 + milesecond) * 1_000_000 + nanosecond
   }
 
   ///
@@ -21,7 +21,7 @@ public struct Timestamp: LosslessStringConvertible {
   /// - Parameter string: format: 00:00:00.000
   @inlinable
   public init?(_ description: String) {
-    self.init(string: description)
+    self.init(string: description, strictMode: true)
   }
 
   internal init?<S>(slow string: S) where S: StringProtocol {
@@ -57,11 +57,12 @@ public struct Timestamp: LosslessStringConvertible {
       hour: hour, minute: minute, second: second, milesecond: milesecond)
   }
 
-  public init?<S>(string fast: S) where S: StringProtocol {
+  public init?<S>(string fast: S, strictMode: Bool = false) where S: StringProtocol {
     var hour: UInt64 = 0
     var minute: UInt64 = 0
     var second: UInt64 = 0
     var milesecond: UInt64 = 0
+    var milesecondWidth: UInt = 0
     var position = 0
     for unit in fast.utf8 {
       switch unit {
@@ -75,6 +76,7 @@ public struct Timestamp: LosslessStringConvertible {
         case 2:
           second = second * 10 + value
         case 3:
+          milesecondWidth += 1
           milesecond = milesecond * 10 + value
         default:
           return nil
@@ -94,12 +96,32 @@ public struct Timestamp: LosslessStringConvertible {
         return nil
       }
     }
+    if strictMode, milesecondWidth != 3 {
+      return nil
+    }
+    var nanosecond: UInt64
+    switch milesecondWidth {
+    case 0:
+      return nil
+    case 1: nanosecond = milesecond * 100 * 1000_000
+    case 2: nanosecond = milesecond * 10 * 1000_000
+    case 4...9:
+      nanosecond = milesecond
+      for _ in 0..<(9-milesecondWidth) {
+        nanosecond /= 10
+      }
+    default:
+      nanosecond = milesecond
+      for _ in 1...milesecondWidth {
+        nanosecond /= 10
+      }
+    }
 
     self.init(
-      hour: hour, minute: minute, second: second, milesecond: milesecond)
+      hour: hour, minute: minute, second: second, milesecond: 0, nanosecond: nanosecond)
   }
 
-  public var description: String {
+  public func toString(displayNanoSecond: Bool = false) -> String {
     var rest = value / 1_000_000  // ms
     let milesecond = rest % 1_000
     rest = rest / 1_000  // s
@@ -107,8 +129,14 @@ public struct Timestamp: LosslessStringConvertible {
     rest = rest / 60  // minute
     let minute = rest % 60
     rest = rest / 60  // hour
+    let nanosecond = value % 1_000_000
     return String(
       format: "%02d:%02d:%02d.%03d", rest, minute, second, milesecond)
+    + (displayNanoSecond ? String(format: "%06d", nanosecond) : "")
+  }
+
+  public var description: String {
+    toString()
   }
 }
 
