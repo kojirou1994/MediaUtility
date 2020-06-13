@@ -105,10 +105,11 @@ public struct Timestamp: LosslessStringConvertible {
       return nil
     case 1: nanosecond = milesecond * 100 * 1000_000
     case 2: nanosecond = milesecond * 10 * 1000_000
+    case 3: nanosecond = milesecond * 1000_000
     case 4...9:
       nanosecond = milesecond
       for _ in 0..<(9-milesecondWidth) {
-        nanosecond /= 10
+        nanosecond *= 10
       }
     default:
       nanosecond = milesecond
