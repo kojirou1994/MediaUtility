@@ -31,6 +31,11 @@ public enum MkvextractExtractionMode {
   }
 }
 public struct Mkvextract: Executable {
+  public init(filepath: String, extractions: [MkvextractExtractionMode]) {
+    self.filepath = filepath
+    self.extractions = extractions
+  }
+
   public static let executableName = "mkvextract"
 
   public let filepath: String
