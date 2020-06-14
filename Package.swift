@@ -18,7 +18,7 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/kojirou1994/Kwift.git", .upToNextMinor(from: "0.6.0")),
     .package(url: "git@github.com:kojirou1994/Executable.git", from: "0.0.1"),
-    .package(url: "https://github.com/ShawnMoore/XMLParsing.git", from: "0.0.3")
+    .package(url: "https://github.com/kojirou1994/XMLParsing.git", .upToNextMinor(from: "0.1.0"))
   ],
   targets: [
     .target(
