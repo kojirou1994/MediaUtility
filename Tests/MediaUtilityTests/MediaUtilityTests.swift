@@ -12,10 +12,8 @@ final class MediaUtilityTests: XCTestCase {
 
   func testDecodeTimestamp() {
     func _testTimestamp(_ allZero: String, strict: Bool) {
-      var currentIndex = allZero.startIndex
-      while let zeroIndex = allZero[currentIndex...].firstIndex(of: "0") {
-        let nextIndex = allZero.index(after: zeroIndex)
-        let str = String(allZero[..<zeroIndex]) + "1" + allZero[nextIndex...]
+      for zeroIndex in allZero.indexes(of: "0") {
+        let str = String(allZero[..<zeroIndex]) + "1" + allZero[allZero.index(after: zeroIndex)...]
         let timestamp = Timestamp(string: str, strictMode: strict)
         XCTAssertNotNil(timestamp)
         if strict {
@@ -25,7 +23,6 @@ final class MediaUtilityTests: XCTestCase {
           XCTAssertTrue(generatedString.hasPrefix(str))
           XCTAssertTrue(generatedString.dropFirst(str.count).allSatisfy({$0 == "0"}))
         }
-        currentIndex = nextIndex
       }
     }
 

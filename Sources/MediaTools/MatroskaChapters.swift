@@ -46,9 +46,9 @@ public struct MatroskaChapters: Codable, Equatable {
 
       public var chapterUID: UInt
       public var chapterTimeStart: String
-      public var chapterDisplays: [ChapterDisplay]
+      public var chapterDisplays: [ChapterDisplay]?
 
-      public init(chapterUID: UInt, chapterTimeStart: String, chapterDisplays: [MatroskaChapters.EditionEntry.ChapterAtom.ChapterDisplay]) {
+      public init(chapterUID: UInt, chapterTimeStart: String, chapterDisplays: [MatroskaChapters.EditionEntry.ChapterAtom.ChapterDisplay]?) {
         self.chapterUID = chapterUID
         self.chapterTimeStart = chapterTimeStart
         self.chapterDisplays = chapterDisplays
@@ -77,7 +77,35 @@ public struct MatroskaChapters: Codable, Equatable {
     }
   }
 
+  static let header = Data("""
+  <?xml version="1.0"?>
+  <!-- <!DOCTYPE Chapters SYSTEM "matroskachapters.dtd"> -->\n
+  """.utf8)
+
   public func exportXML() throws -> Data {
-    try XMLEncoder().encode(self, withRootKey: "Chapters")
+    try Self.header + XMLEncoder().encode(self, withRootKey: "Chapters")
+  }
+}
+
+import MediaUtility
+
+extension MatroskaChapters.EditionEntry.ChapterAtom {
+  @_transparent
+  public var timestamp: Timestamp? {
+    Timestamp(string: chapterTimeStart, strictMode: false)
+  }
+}
+
+extension MatroskaChapters.EditionEntry {
+  @_transparent
+  public var isEmpty: Bool {
+    switch chapterAtoms.count {
+    case 0:
+      return true
+    case 1:
+      return chapterAtoms[0].timestamp?.value == 0
+    default:
+      return false
+    }
   }
 }
