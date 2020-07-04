@@ -265,7 +265,7 @@ extension MkvmergeIdentification {
   public init(filePath: String) throws {
     let mkvmerge = try AnyExecutable(
       executableName: "mkvmerge", arguments: ["-J", filePath]
-    ).runTSC().output.get()
+    ).launch(use: SwiftToolsSupportExecutableLauncher()).output.get()
     self = try JSONDecoder().kwiftDecode(from: mkvmerge)
   }
 

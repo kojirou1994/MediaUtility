@@ -7,7 +7,7 @@ final class MediaUtilityTests: XCTestCase {
 
   override func setUp() {
     super.setUp()
-    ExecutablePath.set("/usr/local/bin")
+    ExecutablePath.set(path: "/usr/local/bin")
   }
 
   func testDecodeTimestamp() {
