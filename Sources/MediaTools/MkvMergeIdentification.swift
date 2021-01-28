@@ -3,7 +3,10 @@ import MediaUtility
 import ExecutableDescription
 import ExecutableLauncher
 
-public struct MkvmergeIdentification: Decodable {
+@available(*, deprecated, renamed: "MkvMergeIdentification")
+public typealias MkvmergeIdentification = MkvMergeIdentification
+
+public struct MkvMergeIdentification: Decodable {
   /// an array describing the attachments found if any
   public var attachments: [Attachment]
   public var chapters: [Chapter]
@@ -256,14 +259,12 @@ public struct MkvmergeIdentification: Decodable {
 
 }
 
-extension MkvmergeIdentification {
+extension MkvMergeIdentification {
 
-  @inlinable
   public init(url: URL) throws {
     try self.init(filePath: url.path)
   }
 
-  @inlinable
   public init(filePath: String) throws {
     let mkvmerge = try AnyExecutable(
       executableName: "mkvmerge", arguments: ["-J", filePath]
