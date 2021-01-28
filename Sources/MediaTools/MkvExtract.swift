@@ -55,9 +55,14 @@ public struct MkvExtract: Executable {
           arg.append("-s")
         }
         arg.append(opt.outputFilename)
-      default:
-        assertionFailure("Not implemented")
-        break
+      case .tracks(let trackOption):
+        if trackOption.outputs.isEmpty {
+          return
+        }
+        arg.append("tracks")
+        trackOption.outputs.forEach { output in
+          arg.append("\(output.trackID):\(output.filename)")
+        }
       }
     }
     return arg
