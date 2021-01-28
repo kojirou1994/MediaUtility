@@ -5,15 +5,14 @@ public struct MatroskaChapters: Codable, Equatable {
 
   public var entries: [EditionEntry]
 
-  @inlinable
   public init(data: Data) throws {
     self = try XMLDecoder().decode(Self.self, from: data)
   }
 
-  @inlinable
   public init(entries: [MatroskaChapters.EditionEntry]) {
     self.entries = entries
   }
+
   private enum CodingKeys: String, CodingKey {
     case entries = "EditionEntry"
   }

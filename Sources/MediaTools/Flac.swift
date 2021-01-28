@@ -1,3 +1,6 @@
+import ExecutableDescription
+import ExecutableLauncher
+
 public struct FlacEncoder: Executable {
 
   public static let executableName: String = "flac"
@@ -55,7 +58,7 @@ public struct FlacMD5 {
     let md5 = try AnyExecutable(
       executableName: "metaflac",
       arguments: ["--no-filename", "--show-md5sum"] + inputs
-    ).launch(use: SwiftToolsSupportExecutableLauncher()).output.get()
+    ).launch(use: TSCExecutableLauncher()).output.get()
     return md5.split(separator: UInt8(ascii: "\n")).map {
       String(decoding: $0, as: UTF8.self)
     }

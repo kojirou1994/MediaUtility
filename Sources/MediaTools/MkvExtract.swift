@@ -1,6 +1,7 @@
 import Foundation
+import ExecutableDescription
 
-public enum MkvextractExtractionMode {
+public enum MkvExtractionMode {
   case tracks(TrackExtractionOption)
   case chapter(ChapterExtractionOption)
   public struct TrackExtractionOption {
@@ -10,12 +11,12 @@ public enum MkvextractExtractionMode {
 
     public let outputs: [TrackOutput]
     public struct TrackOutput {
-      public init(tid: Int, filename: String) {
-        self.tid = tid
+      public init(trackID: Int, filename: String) {
+        self.trackID = trackID
         self.filename = filename
       }
 
-      public let tid: Int
+      public let trackID: Int
       public let filename: String
     }
   }
@@ -30,8 +31,8 @@ public enum MkvextractExtractionMode {
     //      let simpleLanguage: String?
   }
 }
-public struct Mkvextract: Executable {
-  public init(filepath: String, extractions: [MkvextractExtractionMode]) {
+public struct MkvExtract: Executable {
+  public init(filepath: String, extractions: [MkvExtractionMode]) {
     self.filepath = filepath
     self.extractions = extractions
   }
@@ -40,7 +41,7 @@ public struct Mkvextract: Executable {
 
   public let filepath: String
 
-  public let extractions: [MkvextractExtractionMode]
+  public let extractions: [MkvExtractionMode]
 
   public let parseFully: Bool = false
 

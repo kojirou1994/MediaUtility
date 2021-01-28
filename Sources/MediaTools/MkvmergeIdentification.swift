@@ -1,5 +1,7 @@
 import Foundation
 import MediaUtility
+import ExecutableDescription
+import ExecutableLauncher
 
 public struct MkvmergeIdentification: Decodable {
   /// an array describing the attachments found if any
@@ -265,7 +267,7 @@ extension MkvmergeIdentification {
   public init(filePath: String) throws {
     let mkvmerge = try AnyExecutable(
       executableName: "mkvmerge", arguments: ["-J", filePath]
-    ).launch(use: SwiftToolsSupportExecutableLauncher()).output.get()
+    ).launch(use: TSCExecutableLauncher(outputRedirection: .collect)).output.get()
     self = try JSONDecoder().kwiftDecode(from: mkvmerge)
   }
 

@@ -2,6 +2,7 @@ import XCTest
 @testable import MediaUtility
 @testable import MediaTools
 import XMLParsing
+import ExecutableLauncher
 
 final class MediaUtilityTests: XCTestCase {
 

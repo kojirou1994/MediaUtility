@@ -21,17 +21,16 @@ public struct Chapter {
     let content = try autoreleasepool {
       try String(contentsOf: fileURL)
     }
-    nodes = content.split(separator: "\n").compactMap({
-      (line) -> ChapterNode? in
-      if line.isEmpty {
-        return nil
-      } else {
-        let parts = line.split(separator: " ")
-        //                let time = parts[0].split(separator: ":")
-        return .init(
-          title: String(parts[1]), timestamp: Timestamp(String(parts[0]))!)
+    nodes = content.split(separator: "\n")
+      .compactMap { line -> ChapterNode? in
+        if line.isEmpty {
+          return nil
+        } else {
+          let parts = line.split(separator: " ")
+          //                let time = parts[0].split(separator: ":")
+          return .init(title: String(parts[1]), timestamp: Timestamp(String(parts[0]))!)
+        }
       }
-    })
   }
 
   @inlinable

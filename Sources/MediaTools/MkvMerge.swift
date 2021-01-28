@@ -1,6 +1,10 @@
 import Foundation
+import ExecutableDescription
 
-public struct Mkvmerge: Executable {
+@available(*, deprecated, renamed: "MkvMerge")
+public typealias Mkvmerge = MkvMerge
+
+public struct MkvMerge: Executable {
   public static let executableName: String = "mkvmerge"
 
   public let global: GlobalOption
@@ -283,7 +287,7 @@ public struct Mkvmerge: Executable {
     }
   }
 
-  public init(global: GlobalOption, output: String, inputs: [Mkvmerge.Input]) {
+  public init(global: GlobalOption, output: String, inputs: [MkvMerge.Input]) {
     self.global = global
     self.output = output
     self.inputs = inputs
