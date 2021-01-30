@@ -29,6 +29,7 @@ let package = Package(
       dependencies: [
         .product(name: "ExecutableLauncher", package: "Executable"),
         "XMLParsing",
+        "MediaUtility"
       ]),
     .testTarget(
       name: "MediaUtilityTests",

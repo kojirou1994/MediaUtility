@@ -1,5 +1,6 @@
 import XMLParsing
 import Foundation
+import MediaUtility
 
 public struct MatroskaChapters: Codable, Equatable {
 
@@ -85,8 +86,6 @@ public struct MatroskaChapters: Codable, Equatable {
     try Self.header + XMLEncoder().encode(self, withRootKey: "Chapters")
   }
 }
-
-import MediaUtility
 
 extension MatroskaChapters.EditionEntry.ChapterAtom {
   @_transparent
