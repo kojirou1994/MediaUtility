@@ -1,25 +1,65 @@
 import Foundation
 import ExecutableDescription
 
+/*
+ Currently supported is the extraction of tracks, tags, attachments, chapters, CUE sheets, timestamps and cues.
+ */
+
 public enum MkvExtractionMode {
-  case tracks(TrackExtractionOption)
-  case chapter(ChapterExtractionOption)
+  case tracks(outputs: [TrackOutput])
+  case tags(filename: String)
+  case cuesheet(filename: String)
+  case chapter(simple: Bool, language: String?, filename: String)
+  case timestamps(outputs: [TrackOutput])
+  case cues(outputs: [TrackOutput])
+  case attachments(outputs: [TrackOutput])
+
+  var cliMode: String {
+    switch self {
+    case .tracks: return "tracks"
+    case .chapter: return "chapters"
+    case .timestamps: return "timestamps_v2"
+    case .cues: return "cues"
+    case .tags: return "tags"
+    case .cuesheet: return "cuesheet"
+    case .attachments: return "attachments"
+    }
+  }
+
+  public static func chapter(filename: String) -> Self {
+    .chapter(simple: false, language: nil, filename: filename)
+  }
+
+  @available(*, deprecated, message: "Use chapter(simple:filename:) instead")
+  public static func chapter(_ opt: ChapterExtractionOption) -> Self {
+    .chapter(simple: opt.simple, language: nil, filename: opt.outputFilename)
+  }
+
+  @available(*, deprecated, message: "Use tracks(outputs:) instead")
+  public static func tracks(_ opt: TrackExtractionOption) -> Self {
+    .tracks(outputs: opt.outputs)
+  }
+
+  @available(*, deprecated)
   public struct TrackExtractionOption {
     public init(outputs: [TrackOutput]) {
       self.outputs = outputs
     }
-
     public let outputs: [TrackOutput]
-    public struct TrackOutput {
-      public init(trackID: Int, filename: String) {
-        self.trackID = trackID
-        self.filename = filename
-      }
-
-      public let trackID: Int
-      public let filename: String
-    }
   }
+
+  public struct TrackOutput {
+    public init(trackID: Int, filename: String) {
+      self.trackID = trackID
+      self.filename = filename
+    }
+
+    /// in attachments mode, this means attachmentID
+    public var trackID: Int
+    public var filename: String
+  }
+
+  @available(*, deprecated)
   public struct ChapterExtractionOption {
     public init(simple: Bool, outputFilename: String) {
       self.simple = simple
@@ -28,7 +68,6 @@ public enum MkvExtractionMode {
 
     public let simple: Bool
     public let outputFilename: String
-    //      let simpleLanguage: String?
   }
 }
 public struct MkvExtract: Executable {
@@ -49,20 +88,25 @@ public struct MkvExtract: Executable {
     var arg = [filepath]
     extractions.forEach { extraction in
       switch extraction {
-      case .chapter(let opt):
-        arg.append("chapters")
-        if opt.simple {
+      case let .chapter(simple: simple, language: language, filename: filename):
+        arg.append(extraction.cliMode)
+        if simple {
           arg.append("-s")
+          language.map { arg.append("--simple-language") ; arg.append($0) }
         }
-        arg.append(opt.outputFilename)
-      case .tracks(let trackOption):
-        if trackOption.outputs.isEmpty {
+        arg.append(filename)
+      case .tracks(let outputs), .timestamps(let outputs),
+           .cues(let outputs), .attachments(let outputs):
+        if outputs.isEmpty {
           return
         }
-        arg.append("tracks")
-        trackOption.outputs.forEach { output in
+        arg.append(extraction.cliMode)
+        outputs.forEach { output in
           arg.append("\(output.trackID):\(output.filename)")
         }
+      case .tags(filename: let filename), .cuesheet(filename: let filename):
+        arg.append(extraction.cliMode)
+        arg.append(filename)
       }
     }
     return arg
