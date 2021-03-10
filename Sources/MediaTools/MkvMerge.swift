@@ -30,6 +30,13 @@ public struct MkvMerge: Executable {
 
     // 2.5. File splitting, linking, appending and concatenation (more global options)
     public var split: Split?
+
+    // Other options
+    /// Turns on debugging output
+    public var debug: String?
+    /// Turns on experimental feature
+    public var engage: String?
+
     public enum Split {
       /// size in bytes
       case size(Int)
@@ -38,6 +45,17 @@ public struct MkvMerge: Executable {
       public enum ChapterSplit {
         case all
         case numbers([Int])
+      }
+
+      var argument: String {
+        switch self {
+        case .size(let bytes):
+          return String(describing: bytes)
+        case .chapters(.all):
+          return "chapters:all"
+        case .chapters(.numbers(let numbers)):
+          return "chapters:\(numbers.map{String(describing: $0)}.joined(separator: ","))"
+        }
       }
     }
     public struct TrackOrder {
@@ -68,46 +86,23 @@ public struct MkvMerge: Executable {
     }
 
     var arguments: [String] {
-      var r = [String]()
-      if verbose {
-        r.append("--verbose")
-      }
-      if quiet {
-        r.append("--quiet")
-      }
-      if webm {
-        r.append("--webm")
-      }
-      r.append(contentsOf: ["--title", title])
-      if let l = defaultLanguage {
-        r.append(contentsOf: ["--default-language", l])
-      }
+      var builder = ArgumentBuilder()
+      builder.add(flag: "--verbose", when: verbose)
+      builder.add(flag: "--quiet", when: quiet)
+      builder.add(flag: "--webm", when: webm)
+      builder.add(flag: "--title", value: title)
+      builder.add(flag: "--default-language", value: defaultLanguage)
       if let to = trackOrder, !to.isEmpty {
-        r.append("--track-order")
-        r.append(to.map { $0.argument }.joined(separator: ","))
+        builder.add(flag: "--track-order", value: to.map { $0.argument }.joined(separator: ","))
       }
       if let c = chapterLanguage, !c.isEmpty {
-        r.append("--chapter-language")
-        r.append(c)
+        builder.add(flag: "--chapter-language", value: c)
       }
-      if let c = chapterFile, !c.isEmpty {
-        r.append("--chapters")
-        r.append(c)
-      }
-      if let s = split {
-        r.append("--split")
-        switch s {
-        case .size(let bytes):
-          r.append(String(describing: bytes))
-        case .chapters(.all):
-          r.append("chapters:all")
-        case .chapters(.numbers(let numbers)):
-          r.append(
-            "chapters:\(numbers.map{String(describing: $0)}.joined(separator: ","))"
-          )
-        }
-      }
-      return r
+      builder.add(flag: "--split", value: split?.argument)
+      builder.add(flag: "--debug", value: debug)
+      builder.add(flag: "--engage", value: engage)
+
+      return builder.arguments
     }
   }
 
