@@ -1,21 +1,74 @@
 import Foundation
 import ExecutableDescription
+import MediaUtility
 
 @available(*, deprecated, renamed: "MkvMerge")
 public typealias Mkvmerge = MkvMerge
 
 public struct MkvMerge: Executable {
+
+  public init(global: GlobalOption, output: String, inputs: [Input]) {
+    self.global = global
+    self.output = output
+    self.inputs = inputs
+  }
+
   public static let executableName: String = "mkvmerge"
 
-  public let global: GlobalOption
+  public var global: GlobalOption
 
+  public var output: String
+
+  public var inputs: [Input]
+
+  public var arguments: [String] {
+
+    var builder = ArgumentBuilder()
+    builder.append(argumentsFrom: global.arguments)
+    builder.add(flag: "--output", value: output)
+    inputs.forEach { input in
+      builder.append(argumentsFrom: input.arguments)
+    }
+
+    if builder.arguments.count >= 4096 {
+      let optionsFile = URL(fileURLWithPath: NSTemporaryDirectory())
+        .appendingPathComponent("\(UUID().uuidString).json")
+      try! JSONSerialization.data(
+        withJSONObject: builder.arguments, options: [.prettyPrinted]
+      ).write(to: optionsFile)
+      return ["@\(optionsFile.path)"]
+    } else {
+      return builder.arguments
+    }
+  }
+
+}
+
+// MARK: GlobalOption
+extension MkvMerge {
   public struct GlobalOption {
+
+    public init(verbose: Bool = false, quiet: Bool, webm: Bool = false, title: String? = nil, defaultLanguage: String? = nil, chapterLanguage: String? = nil, chapterFile: String? = nil, generateChaptersMode: MkvMerge.GlobalOption.GenerateChaptersMode? = nil, chaptersNameTemplate: MkvMerge.GlobalOption.ChaptersNameTemplate? = nil, trackOrder: [MkvMerge.GlobalOption.TrackOrder]? = nil, split: MkvMerge.GlobalOption.Split? = nil, debug: String? = nil, experimentalFeatures: [MkvMerge.GlobalOption.ExperimentFeature]? = nil) {
+      self.verbose = verbose
+      self.quiet = quiet
+      self.webm = webm
+      self.title = title
+      self.defaultLanguage = defaultLanguage
+      self.chapterLanguage = chapterLanguage
+      self.chapterFile = chapterFile
+      self.generateChaptersMode = generateChaptersMode
+      self.chaptersNameTemplate = chaptersNameTemplate
+      self.trackOrder = trackOrder
+      self.split = split
+      self.debug = debug
+      self.experimentalFeatures = experimentalFeatures
+    }
 
     // 2.1. Global options
     public var verbose: Bool
     public var quiet: Bool
     public var webm: Bool
-    public var title: String
+    public var title: String?
     public var defaultLanguage: String?
 
     // 2.2. Segment info handling (global options)
@@ -24,6 +77,8 @@ public struct MkvMerge: Executable {
     // 2.3. Chapter and tag handling (global options)
     public var chapterLanguage: String?
     public var chapterFile: String?
+    public var generateChaptersMode: GenerateChaptersMode?
+    public var chaptersNameTemplate: ChaptersNameTemplate?
 
     // 2.4. General output control (advanced global options)
     public var trackOrder: [TrackOrder]?
@@ -35,13 +90,159 @@ public struct MkvMerge: Executable {
     /// Turns on debugging output
     public var debug: String?
     /// Turns on experimental feature
-    public var engage: String?
+    public var experimentalFeatures: [ExperimentFeature]?
+
+    public enum ChaptersNameTemplate: ExpressibleByStringLiteral {
+      case raw(String)
+      case components([TemplateComponent])
+
+      public init(stringLiteral value: String) {
+        self = .raw(value)
+      }
+
+      public enum TemplateComponent: ExpressibleByStringLiteral {
+
+        case chapterNumber(padding: Int?)
+        case chapterTimestamp(formats: [ChapterTimestampFormat])
+        case filename
+        case filenameWithExt
+        case raw(String)
+
+        public init(stringLiteral value: String) {
+          self = .raw(value)
+        }
+
+        public enum ChapterTimestampFormat: ExpressibleByStringLiteral {
+
+          case hours
+          case hoursPadded
+          case minutes
+          case minutesPadded
+          case seconds
+          case secondsPadded
+          case nanosecondsPadded
+          case nanoseconds(padding: Int)
+          case raw(String)
+
+          public init(stringLiteral value: String) {
+            self = .raw(value)
+          }
+
+          var argument: String {
+            switch self {
+            case .hours: return "%h"
+            case .hoursPadded: return "%H"
+            case .minutes: return "%m"
+            case .minutesPadded: return "%M"
+            case .nanoseconds(let padding):
+              assert((1...9).contains(padding))
+              let fixed = min(9, max(1, padding))
+              return "%\(fixed)n"
+            case .nanosecondsPadded: return "%n"
+            case .raw(let raw): return raw
+            case .seconds: return "%s"
+            case .secondsPadded: return "%S"
+            }
+          }
+        }
+
+        var argument: String {
+          switch self {
+          case .chapterNumber(let padding):
+            if let v = padding, v > 0 {
+              return "<NUM:\(v)>"
+            }
+            return "<NUM>"
+          case .chapterTimestamp(let formats):
+            return formats.map(\.argument).joined()
+          case .filename:
+            return "<FILE_NAME>"
+          case .filenameWithExt:
+            return "<FILE_NAME_WITH_EXT>"
+          case .raw(let raw):
+            return raw
+          }
+        }
+
+      }
+
+      var argument: String {
+        switch self {
+        case .raw(let raw):
+          return raw
+        case .components(let components):
+          return components.map(\.argument).joined(separator: "")
+        }
+      }
+    }
+
+    public enum GenerateChaptersMode {
+      case whenAppending
+      case interval(Split.DurationSplit)
+
+      var argument: String {
+        switch self {
+        case .whenAppending:
+          return "when-appending"
+        case .interval(let timeSpec):
+          return "interval:\(timeSpec.argument)"
+        }
+      }
+    }
+
+    public enum ExperimentFeature: String {
+      case space_after_chapters
+      case no_chapters_in_meta_seek
+      case no_meta_seek
+      case lacing_xiph
+      case lacing_ebml
+      case native_mpeg4
+      case no_variable_data
+      case force_passthrough_packetizer
+      case write_headers_twice
+      case allow_avc_in_vfw_mode
+      case keep_bitstream_ar_info
+      case no_simpleblocks
+      case use_codec_state_only
+      case enable_timestamp_warning
+      case remove_bitstream_ar_info
+      case vobsub_subpic_stop_cmds
+      case no_cue_duration
+      case no_cue_relative_position
+      case no_delay_for_garbage_in_avi
+      case keep_last_chapter_in_mpls
+      case keep_track_statistics_tags
+      case all_i_slices_are_key_frames
+      case append_and_split_flac
+      case cow
+    }
 
     public enum Split {
-      /// size in bytes
+      /// Splitting by size in bytes
       case size(Int)
-      //            case duration(seconds: Int)
+      /// Splitting after a duration.
+      case duration(DurationSplit)
+      /// Splitting after specific timestamps.
+      case timestamps([DurationSplit])
+      /// Splitting after specific frames/fields.
+      case frames([Int])
+      /// Splitting before specific chapters.
       case chapters(ChapterSplit)
+
+      public enum DurationSplit {
+        case timestamp(Timestamp)
+        case second(Int)
+
+        var argument: String {
+          switch self {
+          case .second(let second):
+            return "\(second)s"
+          case .timestamp(let timestamp):
+            return "duration:\(timestamp)"
+          }
+        }
+      }
+
       public enum ChapterSplit {
         case all
         case numbers([Int])
@@ -51,6 +252,12 @@ public struct MkvMerge: Executable {
         switch self {
         case .size(let bytes):
           return String(describing: bytes)
+        case .duration(let duration):
+          return duration.argument
+        case .timestamps(let timestamps):
+          return "timestamps:\(timestamps.map(\.argument).joined(separator: ","))"
+        case .frames(let frames):
+          return "frames:\(frames.map(\.description).joined(separator: ","))"
         case .chapters(.all):
           return "chapters:all"
         case .chapters(.numbers(let numbers)):
@@ -59,30 +266,13 @@ public struct MkvMerge: Executable {
       }
     }
     public struct TrackOrder {
-      public let fid: Int
-      public let tid: Int
+      public var fid: Int
+      public var tid: Int
       var argument: String { "\(fid):\(tid)" }
       public init(fid: Int, tid: Int) {
         self.fid = fid
         self.tid = tid
       }
-    }
-
-    public init(
-      verbose: Bool = false, quiet: Bool, webm: Bool = false,
-      title: String = "", defaultLanguage: String? = nil,
-      split: Split? = nil, trackOrder: [TrackOrder]? = nil,
-      chapterLanguage: String? = nil, chapterFile: String? = nil
-    ) {
-      self.verbose = verbose
-      self.quiet = quiet
-      self.webm = webm
-      self.title = title
-      self.defaultLanguage = defaultLanguage
-      self.split = split
-      self.trackOrder = trackOrder
-      self.chapterLanguage = chapterLanguage
-      self.chapterFile = chapterFile
     }
 
     var arguments: [String] {
@@ -92,24 +282,26 @@ public struct MkvMerge: Executable {
       builder.add(flag: "--webm", when: webm)
       builder.add(flag: "--title", value: title)
       builder.add(flag: "--default-language", value: defaultLanguage)
-      if let to = trackOrder, !to.isEmpty {
-        builder.add(flag: "--track-order", value: to.map { $0.argument }.joined(separator: ","))
-      }
-      if let c = chapterLanguage, !c.isEmpty {
-        builder.add(flag: "--chapter-language", value: c)
-      }
+
+      builder.add(flag: "--chapter-language", value: chapterLanguage)
+      builder.add(flag: "--chapters", value: chapterFile)
+      builder.add(flag: "--generate-chapters", value: generateChaptersMode?.argument)
+      builder.add(flag: "--generate-chapters-name-template", value: chaptersNameTemplate?.argument)
+
+      builder.add(flag: "--track-order", value: trackOrder?.map { $0.argument }.joined(separator: ","))
+
       builder.add(flag: "--split", value: split?.argument)
+
       builder.add(flag: "--debug", value: debug)
-      builder.add(flag: "--engage", value: engage)
+      builder.add(flag: "--engage", value: experimentalFeatures?.map(\.rawValue).joined(separator: ","))
 
       return builder.arguments
     }
   }
+}
 
-  public let output: String
-
-  public let inputs: [Input]
-
+// MARK: Input
+extension MkvMerge {
   public struct Input {
     public enum InputOption {
       public enum TrackSelect {
@@ -239,9 +431,9 @@ public struct MkvMerge: Executable {
         }
       }
     }
-    public let file: String
-    public let append: Bool
-    public let lookForOtherParts: Bool
+    public var file: String
+    public var append: Bool
+    public var lookForOtherParts: Bool
     public var options: [InputOption]
 
     public init(
@@ -265,26 +457,5 @@ public struct MkvMerge: Executable {
       r.append(file)
       return r
     }
-  }
-
-  public var arguments: [String] {
-    let args =
-      global.arguments + ["--output", output] + inputs.flatMap { $0.arguments }
-    if args.count >= 4096 {
-      let optionsFile = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("\(UUID().uuidString).json")
-      try! JSONSerialization.data(
-        withJSONObject: args, options: [.prettyPrinted]
-      ).write(to: optionsFile)
-      return ["@\(optionsFile.path)"]
-    } else {
-      return args
-    }
-  }
-
-  public init(global: GlobalOption, output: String, inputs: [MkvMerge.Input]) {
-    self.global = global
-    self.output = output
-    self.inputs = inputs
   }
 }
