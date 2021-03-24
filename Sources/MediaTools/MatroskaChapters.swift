@@ -20,72 +20,206 @@ public struct MatroskaChapters: Codable, Equatable {
 
   public struct EditionEntry: Codable, Equatable {
 
-    public var editionUID: UInt
-    public var editionFlagHidden: Bool?
-    public var editionManaged: Bool?
-    public var isOrdered: Bool?
-    public var editionFlagDefault: Bool?
-    public var chapterAtoms: [ChapterAtom]
+    public init(uid: UInt, isHidden: Bool? = nil, isManaged: Bool? = nil, isOrdered: Bool? = nil, isDefault: Bool? = nil, chapters: [ChapterAtom]) {
+      self.uid = uid
+      self.isHidden = isHidden
+      self.isManaged = isManaged
+      self.isOrdered = isOrdered
+      self.isDefault = isDefault
+      self.chapters = chapters
+    }
 
+    @available(*, deprecated, renamed: "uid")
+    public var editionUID: UInt {
+      set {
+        uid = newValue
+      }
+      get {
+        uid
+      }
+    }
+
+    @available(*, deprecated, renamed: "isHidden")
+    public var editionFlagHidden: Bool? {
+      set {
+        isHidden = newValue
+      }
+      get {
+        isHidden
+      }
+    }
+
+    @available(*, deprecated, renamed: "isManaged")
+    public var editionManaged: Bool? {
+      set {
+        isManaged = newValue
+      }
+      get {
+        isManaged
+      }
+    }
+
+    @available(*, deprecated, renamed: "isDefault")
+    public var editionFlagDefault: Bool? {
+      set {
+        isDefault = newValue
+      }
+      get {
+        isDefault
+      }
+    }
+
+    @available(*, deprecated, renamed: "chapters")
+    public var chapterAtoms: [ChapterAtom] {
+      set {
+        chapters = newValue
+      }
+      get {
+        chapters
+      }
+    }
+
+    public var uid: UInt
+    public var isHidden: Bool?
+    public var isManaged: Bool?
+    public var isOrdered: Bool?
+    public var isDefault: Bool?
+    public var chapters: [ChapterAtom]
+
+    @available(*, deprecated, renamed: "init(uid:isHidden:isManaged:isOrdered:isDefault:chapters:)")
     public init(editionUID: UInt, editionFlagHidden: Bool?, editionManaged: Bool?,
                 isOrdered: Bool? = nil,
                 editionFlagDefault: Bool?, chapterAtoms: [MatroskaChapters.EditionEntry.ChapterAtom]) {
-      self.editionUID = editionUID
-      self.editionFlagHidden = editionFlagHidden
-      self.editionManaged = editionManaged
+      self.uid = editionUID
+      self.isHidden = editionFlagHidden
+      self.isManaged = editionManaged
       self.isOrdered = isOrdered
-      self.editionFlagDefault = editionFlagDefault
-      self.chapterAtoms = chapterAtoms
+      self.isDefault = editionFlagDefault
+      self.chapters = chapterAtoms
     }
 
     private enum CodingKeys: String, CodingKey {
-      case editionUID = "EditionUID"
-      case editionFlagHidden = "EditionFlagHidden"
-      case editionManaged = "EditionManaged"
+      case uid = "EditionUID"
+      case isHidden = "EditionFlagHidden"
+      case isManaged = "EditionManaged"
       case isOrdered = "EditionFlagOrdered"
-      case editionFlagDefault = "EditionFlagDefault"
-      case chapterAtoms = "ChapterAtom"
+      case isDefault = "EditionFlagDefault"
+      case chapters = "ChapterAtom"
     }
 
     public struct ChapterAtom: Codable, Equatable {
+      public init(uid: UInt, startTime: String, endTime: String? = nil, isHidden: Bool? = nil, displays: [ChapterDisplay]? = nil) {
+        self.uid = uid
+        self.startTime = startTime
+        self.endTime = endTime
+        self.isHidden = isHidden
+        self.displays = displays
+      }
 
-      public var chapterUID: UInt
-      public var chapterTimeStart: String
-      public var chapterTimeEnd: String?
+      @available(*, deprecated, renamed: "uid")
+      public var chapterUID: UInt {
+        set {
+          uid = newValue
+        }
+        get {
+          uid
+        }
+      }
+
+      @available(*, deprecated, renamed: "startTime")
+      public var chapterTimeStart: String {
+        set {
+          startTime = newValue
+        }
+        get {
+          startTime
+        }
+      }
+
+      @available(*, deprecated, renamed: "endTime")
+      public var chapterTimeEnd: String? {
+        set {
+          endTime = newValue
+        }
+        get {
+          endTime
+        }
+      }
+
+      @available(*, deprecated, renamed: "displays")
+      public var chapterDisplays: [ChapterDisplay]? {
+        set {
+          displays = newValue
+        }
+        get {
+          displays
+        }
+      }
+
+      public var uid: UInt
+      public var startTime: String
+      public var endTime: String?
       public var isHidden: Bool?
-      public var chapterDisplays: [ChapterDisplay]?
+      public var displays: [ChapterDisplay]?
 
+      @available(*, deprecated, renamed: "init(uid:startTime:endTime:isHidden:displays:)")
       public init(chapterUID: UInt,
                   chapterTimeStart: String, chapterTimeEnd: String?,
                   isHidden: Bool? = nil,
                   chapterDisplays: [ChapterDisplay]?) {
-        self.chapterUID = chapterUID
-        self.chapterTimeStart = chapterTimeStart
-        self.chapterTimeEnd = chapterTimeEnd
+        self.uid = chapterUID
+        self.startTime = chapterTimeStart
+        self.endTime = chapterTimeEnd
         self.isHidden = isHidden
-        self.chapterDisplays = chapterDisplays
+        self.displays = chapterDisplays
       }
 
       private enum CodingKeys: String, CodingKey {
-        case chapterUID = "ChapterUID"
-        case chapterTimeStart = "ChapterTimeStart"
-        case chapterTimeEnd = "ChapterTimeEnd"
+        case uid = "ChapterUID"
+        case startTime = "ChapterTimeStart"
+        case endTime = "ChapterTimeEnd"
         case isHidden = "ChapterFlagHidden"
-        case chapterDisplays = "ChapterDisplay"
+        case displays = "ChapterDisplay"
       }
 
       public struct ChapterDisplay: Codable, Equatable {
-        public var chapterString: String
-        public var chapterLanguage: String
+        public init(string: String, language: String) {
+          self.string = string
+          self.language = language
+        }
 
+        @available(*, deprecated, renamed: "string")
+        public var chapterString: String {
+          set {
+            string = newValue
+          }
+          get {
+            string
+          }
+        }
+
+        @available(*, deprecated, renamed: "language")
+        public var chapterLanguage: String {
+          set {
+            language = newValue
+          }
+          get {
+            language
+          }
+        }
+
+        public var string: String
+        public var language: String
+
+        @available(*, deprecated, renamed: "init(string:language:)")
         public init(chapterString: String, chapterLanguage: String) {
-          self.chapterString = chapterString
-          self.chapterLanguage = chapterLanguage
+          self.string = chapterString
+          self.language = chapterLanguage
         }
 
         private enum CodingKeys: String, CodingKey {
-          case chapterString = "ChapterString"
-          case chapterLanguage = "ChapterLanguage"
+          case string = "ChapterString"
+          case language = "ChapterLanguage"
         }
       }
     }
@@ -104,18 +238,18 @@ public struct MatroskaChapters: Codable, Equatable {
 extension MatroskaChapters.EditionEntry.ChapterAtom {
   @_transparent
   public var timestamp: Timestamp? {
-    Timestamp(string: chapterTimeStart, strictMode: false)
+    Timestamp(string: startTime, strictMode: false)
   }
 }
 
 extension MatroskaChapters.EditionEntry {
   @_transparent
   public var isEmpty: Bool {
-    switch chapterAtoms.count {
+    switch chapters.count {
     case 0:
       return true
     case 1:
-      return chapterAtoms[0].timestamp?.value == 0
+      return chapters[0].timestamp?.value == 0
     default:
       return false
     }
