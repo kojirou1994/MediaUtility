@@ -46,17 +46,22 @@ public struct MatroskaChapters: Codable, Equatable {
 
       public var chapterUID: UInt
       public var chapterTimeStart: String
+      public var chapterTimeEnd: String?
       public var chapterDisplays: [ChapterDisplay]?
 
-      public init(chapterUID: UInt, chapterTimeStart: String, chapterDisplays: [MatroskaChapters.EditionEntry.ChapterAtom.ChapterDisplay]?) {
+      public init(chapterUID: UInt,
+                  chapterTimeStart: String, chapterTimeEnd: String?,
+                  chapterDisplays: [ChapterDisplay]?) {
         self.chapterUID = chapterUID
         self.chapterTimeStart = chapterTimeStart
+        self.chapterTimeEnd = chapterTimeEnd
         self.chapterDisplays = chapterDisplays
       }
 
       private enum CodingKeys: String, CodingKey {
         case chapterUID = "ChapterUID"
         case chapterTimeStart = "ChapterTimeStart"
+        case chapterTimeEnd = "ChapterTimeEnd"
         case chapterDisplays = "ChapterDisplay"
       }
 
