@@ -183,9 +183,10 @@ public struct MatroskaChapters: Codable, Equatable {
       }
 
       public struct ChapterDisplay: Codable, Equatable {
-        public init(string: String, language: String) {
+        public init(string: String, language: String, country: String? = nil) {
           self.string = string
           self.language = language
+          self.country = country
         }
 
         @available(*, deprecated, renamed: "string")
@@ -210,6 +211,7 @@ public struct MatroskaChapters: Codable, Equatable {
 
         public var string: String
         public var language: String
+        public var country: String?
 
         @available(*, deprecated, renamed: "init(string:language:)")
         public init(chapterString: String, chapterLanguage: String) {
@@ -220,6 +222,7 @@ public struct MatroskaChapters: Codable, Equatable {
         private enum CodingKeys: String, CodingKey {
           case string = "ChapterString"
           case language = "ChapterLanguage"
+          case country = "ChapterCountry"
         }
       }
     }
