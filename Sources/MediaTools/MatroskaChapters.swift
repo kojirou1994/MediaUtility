@@ -23,13 +23,17 @@ public struct MatroskaChapters: Codable, Equatable {
     public var editionUID: UInt
     public var editionFlagHidden: Bool?
     public var editionManaged: Bool?
+    public var isOrdered: Bool?
     public var editionFlagDefault: Bool?
     public var chapterAtoms: [ChapterAtom]
 
-    public init(editionUID: UInt, editionFlagHidden: Bool?, editionManaged: Bool?, editionFlagDefault: Bool?, chapterAtoms: [MatroskaChapters.EditionEntry.ChapterAtom]) {
+    public init(editionUID: UInt, editionFlagHidden: Bool?, editionManaged: Bool?,
+                isOrdered: Bool? = nil,
+                editionFlagDefault: Bool?, chapterAtoms: [MatroskaChapters.EditionEntry.ChapterAtom]) {
       self.editionUID = editionUID
       self.editionFlagHidden = editionFlagHidden
       self.editionManaged = editionManaged
+      self.isOrdered = isOrdered
       self.editionFlagDefault = editionFlagDefault
       self.chapterAtoms = chapterAtoms
     }
@@ -38,6 +42,7 @@ public struct MatroskaChapters: Codable, Equatable {
       case editionUID = "EditionUID"
       case editionFlagHidden = "EditionFlagHidden"
       case editionManaged = "EditionManaged"
+      case isOrdered = "EditionFlagOrdered"
       case editionFlagDefault = "EditionFlagDefault"
       case chapterAtoms = "ChapterAtom"
     }
@@ -47,14 +52,17 @@ public struct MatroskaChapters: Codable, Equatable {
       public var chapterUID: UInt
       public var chapterTimeStart: String
       public var chapterTimeEnd: String?
+      public var isHidden: Bool?
       public var chapterDisplays: [ChapterDisplay]?
 
       public init(chapterUID: UInt,
                   chapterTimeStart: String, chapterTimeEnd: String?,
+                  isHidden: Bool? = nil,
                   chapterDisplays: [ChapterDisplay]?) {
         self.chapterUID = chapterUID
         self.chapterTimeStart = chapterTimeStart
         self.chapterTimeEnd = chapterTimeEnd
+        self.isHidden = isHidden
         self.chapterDisplays = chapterDisplays
       }
 
@@ -62,6 +70,7 @@ public struct MatroskaChapters: Codable, Equatable {
         case chapterUID = "ChapterUID"
         case chapterTimeStart = "ChapterTimeStart"
         case chapterTimeEnd = "ChapterTimeEnd"
+        case isHidden = "ChapterFlagHidden"
         case chapterDisplays = "ChapterDisplay"
       }
 
