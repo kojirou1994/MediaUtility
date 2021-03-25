@@ -2,6 +2,9 @@ import XMLParsing
 import Foundation
 import MediaUtility
 
+@available(*, deprecated, renamed: "MatroskaChapter")
+public typealias MatroskaChapters = MatroskaChapter
+
 public struct MatroskaChapter: Codable, Equatable {
 
   public var entries: [EditionEntry]
@@ -10,7 +13,7 @@ public struct MatroskaChapter: Codable, Equatable {
     self = try XMLDecoder().decode(Self.self, from: data)
   }
 
-  public init(entries: [MatroskaChapter.EditionEntry]) {
+  public init(entries: [EditionEntry]) {
     self.entries = entries
   }
 
@@ -89,7 +92,7 @@ public struct MatroskaChapter: Codable, Equatable {
     @available(*, deprecated, renamed: "init(uid:isHidden:isManaged:isOrdered:isDefault:chapters:)")
     public init(editionUID: UInt, editionFlagHidden: Bool?, editionManaged: Bool?,
                 isOrdered: Bool? = nil,
-                editionFlagDefault: Bool?, chapterAtoms: [MatroskaChapter.EditionEntry.ChapterAtom]) {
+                editionFlagDefault: Bool?, chapterAtoms: [ChapterAtom]) {
       self.uid = editionUID
       self.isHidden = editionFlagHidden
       self.isManaged = editionManaged
@@ -230,13 +233,27 @@ public struct MatroskaChapter: Codable, Equatable {
     }
   }
 
-  static let header = Data("""
+  private static let header = """
   <?xml version="1.0"?>
   <!-- <!DOCTYPE Chapters SYSTEM "matroskachapters.dtd"> -->\n
-  """.utf8)
+  """
+
+  private func encodedXML() throws -> Data {
+    try XMLEncoder().encode(self, withRootKey: "Chapters")
+  }
 
   public func exportXML() throws -> Data {
-    try Self.header + XMLEncoder().encode(self, withRootKey: "Chapters")
+    var data = Data()
+    data.append(contentsOf: Self.header.utf8)
+    data.append(try encodedXML())
+    return data
+  }
+
+  public func encodedXMLBytes() throws -> [UInt8] {
+    var bytes = [UInt8]()
+    bytes.append(contentsOf: Self.header.utf8)
+    bytes.append(contentsOf: try encodedXML())
+    return bytes
   }
 }
 
