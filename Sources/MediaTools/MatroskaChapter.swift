@@ -2,7 +2,7 @@ import XMLParsing
 import Foundation
 import MediaUtility
 
-public struct MatroskaChapters: Codable, Equatable {
+public struct MatroskaChapter: Codable, Equatable {
 
   public var entries: [EditionEntry]
 
@@ -10,7 +10,7 @@ public struct MatroskaChapters: Codable, Equatable {
     self = try XMLDecoder().decode(Self.self, from: data)
   }
 
-  public init(entries: [MatroskaChapters.EditionEntry]) {
+  public init(entries: [MatroskaChapter.EditionEntry]) {
     self.entries = entries
   }
 
@@ -89,7 +89,7 @@ public struct MatroskaChapters: Codable, Equatable {
     @available(*, deprecated, renamed: "init(uid:isHidden:isManaged:isOrdered:isDefault:chapters:)")
     public init(editionUID: UInt, editionFlagHidden: Bool?, editionManaged: Bool?,
                 isOrdered: Bool? = nil,
-                editionFlagDefault: Bool?, chapterAtoms: [MatroskaChapters.EditionEntry.ChapterAtom]) {
+                editionFlagDefault: Bool?, chapterAtoms: [MatroskaChapter.EditionEntry.ChapterAtom]) {
       self.uid = editionUID
       self.isHidden = editionFlagHidden
       self.isManaged = editionManaged
@@ -212,6 +212,7 @@ public struct MatroskaChapters: Codable, Equatable {
         public var string: String
         public var language: String
         public var country: String?
+        public var languageIETF: String?
 
         @available(*, deprecated, renamed: "init(string:language:)")
         public init(chapterString: String, chapterLanguage: String) {
@@ -223,6 +224,7 @@ public struct MatroskaChapters: Codable, Equatable {
           case string = "ChapterString"
           case language = "ChapterLanguage"
           case country = "ChapterCountry"
+          case languageIETF = "ChapLanguageIETF"
         }
       }
     }
@@ -238,14 +240,14 @@ public struct MatroskaChapters: Codable, Equatable {
   }
 }
 
-extension MatroskaChapters.EditionEntry.ChapterAtom {
+extension MatroskaChapter.EditionEntry.ChapterAtom {
   @_transparent
   public var timestamp: Timestamp? {
     Timestamp(string: startTime, strictMode: false)
   }
 }
 
-extension MatroskaChapters.EditionEntry {
+extension MatroskaChapter.EditionEntry {
   @_transparent
   public var isEmpty: Bool {
     switch chapters.count {
