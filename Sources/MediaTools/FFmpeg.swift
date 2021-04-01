@@ -212,6 +212,9 @@ extension FFmpeg {
             argument.append("?")
           }
           builder.add(flag: "-map", value: argument)
+        case .filter(filtergraph: let filtergraph, streamSpecifier: let streamSpecifier):
+          precondition(!isInput)
+          builder.add(flag: "-filter\(streamSpecifier?.argument ?? "")", value: filtergraph)
         }
       }
 
@@ -250,6 +253,8 @@ extension FFmpeg {
     case duration(String)
     // TODO: sync_file_id not implement
     case map(inputFileID: Int, streamSpecifier: StreamSpecifier?, isOptional: Bool, isNegativeMapping: Bool)
+    /// Create the filtergraph specified by filtergraph and use it to filter the stream.
+    case filter(filtergraph: String, streamSpecifier: StreamSpecifier?)
 
     case nonStdOptions([String : String])
   }
