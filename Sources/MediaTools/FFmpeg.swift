@@ -194,6 +194,7 @@ extension FFmpeg {
         case .format(let format):
           builder.add(flag: "-f", value: format)
         case .streamLoop(let number):
+          precondition(isInput)
           builder.add(flag: "-stream_loop", value: number)
         case .duration(let duration):
           builder.add(flag: "-t", value: duration)
@@ -201,6 +202,16 @@ extension FFmpeg {
           options.forEach { (key, value) in
             builder.add(flag: "-\(key)", value: value)
           }
+        case .map(inputFileID: let inputFileID, streamSpecifier: let streamSpecifier,
+                  isOptional: let isOptional, isNegativeMapping: let isNegativeMapping):
+          precondition(!isInput)
+          var argument = isNegativeMapping ? "-" : ""
+          argument.append(inputFileID.description)
+          streamSpecifier.map { argument.append($0.argument) }
+          if isOptional {
+            argument.append("?")
+          }
+          builder.add(flag: "-map", value: argument)
         }
       }
 
@@ -237,6 +248,8 @@ extension FFmpeg {
     /// duration must be a time duration specification, see (ffmpeg-utils)the Time duration section in the ffmpeg-utils(1) manual.
     /// -to and -t are mutually exclusive and -t has priority.
     case duration(String)
+    // TODO: sync_file_id not implement
+    case map(inputFileID: Int, streamSpecifier: StreamSpecifier?, isOptional: Bool, isNegativeMapping: Bool)
 
     case nonStdOptions([String : String])
   }
@@ -258,6 +271,7 @@ extension FFmpeg {
       .programID(programID, additional: nil)
     }
 
+    /// argument string, including the prefix ':'
     var argument: String {
       switch self {
       case .matchMetadata(let key, let value):
