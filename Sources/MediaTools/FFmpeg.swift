@@ -28,6 +28,7 @@ public struct FFmpeg: Executable {
 extension FFmpeg {
   public struct GlobalOptions {
     public init(
+      hideBanner: Bool = false,
       cpuflags: String? = nil, overwrite: Bool? = nil, filterThreadNumber: Int? = nil,
       stats: Bool = true, filterComplexThreadNumber: Int? = nil, filtergraph: String? = nil,
       filterComplextScriptFilename: String? = nil, sdpFile: String? = nil,
@@ -37,6 +38,7 @@ extension FFmpeg {
       progressUrl: String? = nil, debugTimestamp: Bool = false, benchmark: Bool = false,
       benchmarkAll: Bool = false, timelimit: Double? = nil, dumpPacket: Bool = false,
       dumpHex: Bool = false, showQPHistogram: Bool = false) {
+      self.hideBanner = hideBanner
       self.cpuflags = cpuflags
       self.overwrite = overwrite
       self.filterThreadNumber = filterThreadNumber
@@ -59,6 +61,10 @@ extension FFmpeg {
       self.dumpHex = dumpHex
       self.showQPHistogram = showQPHistogram
     }
+
+    /// Suppress printing banner.
+    /// All FFmpeg tools will normally show a copyright notice, build options and library versions. This option can be used to suppress printing this information.
+    public var hideBanner: Bool
 
     public var cpuflags: String?
 
@@ -135,6 +141,7 @@ extension FFmpeg {
 
     var arguments: [String] {
       var builder = ArgumentBuilder()
+      builder.add(flag: "-hide_banner", when: hideBanner)
       builder.add(flag: "-cpuflags", value: cpuflags)
       builder.add(flag: "-filter_threads", value: filterThreadNumber)
       builder.add(flag: "--filter_complex_threads", value: filterComplexThreadNumber)
