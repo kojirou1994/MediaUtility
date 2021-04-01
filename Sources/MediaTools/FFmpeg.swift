@@ -2,7 +2,7 @@ import Foundation
 import ExecutableDescription
 
 public struct FFmpeg: Executable {
-  public init(global: GlobalOptions, ios: [FFmpeg.FFmpegIO]) {
+  public init(global: GlobalOptions = .init(), ios: [FFmpeg.FFmpegIO] = []) {
     self.global = global
     self.ios = ios
   }
@@ -28,7 +28,7 @@ public struct FFmpeg: Executable {
 extension FFmpeg {
   public struct GlobalOptions {
     public init(
-      cpuflags: String? = nil, overwrite: Bool? = false, filterThreadNumber: Int? = nil,
+      cpuflags: String? = nil, overwrite: Bool? = nil, filterThreadNumber: Int? = nil,
       stats: Bool = true, filterComplexThreadNumber: Int? = nil, filtergraph: String? = nil,
       filterComplextScriptFilename: String? = nil, sdpFile: String? = nil,
       maxErrorRate: Double? = nil, stopAndExitOnError: Bool = false,
@@ -61,7 +61,7 @@ extension FFmpeg {
     public var cpuflags: String?
 
     /// Overwrite output files without asking.
-    public var overwrite: Bool? = false
+    public var overwrite: Bool?
 
     /// Defines how many threads are used to process a filter pipeline. Each pipeline will produce a thread pool with this many threads available for parallel processing. The default is the number of available CPUs.
     public var filterThreadNumber: Int?
