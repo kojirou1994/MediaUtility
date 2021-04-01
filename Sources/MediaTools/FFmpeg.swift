@@ -185,6 +185,8 @@ extension FFmpeg {
     public let isInput: Bool
     public var options: [InputOutputOption]
 
+    public var isOutput: Bool { !isInput }
+
     var arguments: [String] {
       var builder = ArgumentBuilder()
       options.forEach { option in
@@ -217,6 +219,8 @@ extension FFmpeg {
           builder.add(flag: "-filter\(streamSpecifier?.argument ?? "")", value: filtergraph)
         case .audioChannels(let number, streamSpecifier: let streamSpecifier):
           builder.add(flag: "-ac\(streamSpecifier?.argument ?? "")", value: number)
+        case .strict(let level):
+          builder.add(flag: "-strict", value: level.rawValue)
         }
       }
 
@@ -259,8 +263,17 @@ extension FFmpeg {
     case filter(filtergraph: String, streamSpecifier: StreamSpecifier?)
     /// Set the number of audio channels. For output streams it is set by default to the number of input audio channels. For input streams this option only makes sense for audio grabbing devices and raw demuxers and is mapped to the corresponding demuxer options.
     case audioChannels(Int, streamSpecifier: StreamSpecifier?)
+    case strict(level: StrictLevel)
 
     case nonStdOptions([String : String])
+  }
+
+  public enum StrictLevel: Int {
+    case very = 2
+    case strict = 1
+    case normal = 0
+    case unofficial = -1
+    case experimental = -2
   }
 
   /// Some options are applied per-stream, e.g. bitrate or codec. Stream specifiers are used to precisely specify which stream(s) a given option belongs to.
