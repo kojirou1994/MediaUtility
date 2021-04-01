@@ -215,6 +215,8 @@ extension FFmpeg {
         case .filter(filtergraph: let filtergraph, streamSpecifier: let streamSpecifier):
           precondition(!isInput)
           builder.add(flag: "-filter\(streamSpecifier?.argument ?? "")", value: filtergraph)
+        case .audioChannels(let number, streamSpecifier: let streamSpecifier):
+          builder.add(flag: "-ac\(streamSpecifier?.argument ?? "")", value: number)
         }
       }
 
@@ -255,6 +257,8 @@ extension FFmpeg {
     case map(inputFileID: Int, streamSpecifier: StreamSpecifier?, isOptional: Bool, isNegativeMapping: Bool)
     /// Create the filtergraph specified by filtergraph and use it to filter the stream.
     case filter(filtergraph: String, streamSpecifier: StreamSpecifier?)
+    /// Set the number of audio channels. For output streams it is set by default to the number of input audio channels. For input streams this option only makes sense for audio grabbing devices and raw demuxers and is mapped to the corresponding demuxer options.
+    case audioChannels(Int, streamSpecifier: StreamSpecifier?)
 
     case nonStdOptions([String : String])
   }
