@@ -27,7 +27,15 @@ public struct FFmpeg: Executable {
 // MARK: Global Options
 extension FFmpeg {
   public struct GlobalOptions {
-    public init(cpuflags: String? = nil, overwrite: Bool? = false, filterThreadNumber: Int? = nil, stats: Bool = true, filterComplexThreadNumber: Int? = nil, filtergraph: String? = nil, filterComplextScriptFilename: String? = nil, sdpFile: String? = nil, maxErrorRate: Double? = nil, stopAndExitOnError: Bool, autoConversionFilters: Bool, statsPeriod: Double, progressUrl: String? = nil, debugTimestamp: Bool = false, benchmark: Bool = false, benchmarkAll: Bool = false, timelimit: Double? = nil, dumpPacket: Bool = false, dumpHex: Bool = false, showQPHistogram: Bool = false) {
+    public init(
+      cpuflags: String? = nil, overwrite: Bool? = false, filterThreadNumber: Int? = nil,
+      stats: Bool = true, filterComplexThreadNumber: Int? = nil, filtergraph: String? = nil,
+      filterComplextScriptFilename: String? = nil, sdpFile: String? = nil,
+      maxErrorRate: Double? = nil, stopAndExitOnError: Bool = false,
+      noAutoConversionFilters: Bool = false, statsPeriod: Double? = nil,
+      progressUrl: String? = nil, debugTimestamp: Bool = false, benchmark: Bool = false,
+      benchmarkAll: Bool = false, timelimit: Double? = nil, dumpPacket: Bool = false,
+      dumpHex: Bool = false, showQPHistogram: Bool = false) {
       self.cpuflags = cpuflags
       self.overwrite = overwrite
       self.filterThreadNumber = filterThreadNumber
@@ -38,7 +46,7 @@ extension FFmpeg {
       self.sdpFile = sdpFile
       self.maxErrorRate = maxErrorRate
       self.stopAndExitOnError = stopAndExitOnError
-      self.autoConversionFilters = autoConversionFilters
+      self.noAutoConversionFilters = noAutoConversionFilters
       self.statsPeriod = statsPeriod
       self.progressUrl = progressUrl
       self.debugTimestamp = debugTimestamp
@@ -89,10 +97,10 @@ extension FFmpeg {
     public var stopAndExitOnError: Bool
 
     /// Enable automatically inserting format conversion filters in all filter graphs, including those defined by -vf, -af, -filter_complex and -lavfi. If filter format negotiation requires a conversion, the initialization of the filters will fail. Conversions can still be performed by inserting the relevant conversion filter (scale, aresample) in the graph. On by default, to explicitly disable it you need to specify -noauto_conversion_filters.
-    public var autoConversionFilters: Bool
+    public var noAutoConversionFilters: Bool
 
     /// Set period at which encoding progress/statistics are updated. Default is 0.5 seconds.
-    public var statsPeriod: Double
+    public var statsPeriod: Double?
 
     /// Send program-friendly progress information to url.
     public var progressUrl: String?
@@ -132,7 +140,7 @@ extension FFmpeg {
       builder.add(flag: "-nostats", when: !stats)
       builder.add(flag: "-filter_complex", value: filtergraph)
       builder.add(flag: "-xerror", when: stopAndExitOnError)
-      builder.add(flag: "-auto_conversion_filters", when: autoConversionFilters)
+      builder.add(flag: "-noauto_conversion_filters", when: noAutoConversionFilters)
       builder.add(flag: "-stats_period", value: statsPeriod)
       builder.add(flag: "-debug_ts", when: debugTimestamp)
       builder.add(flag: "-benchmark", when: benchmark)
