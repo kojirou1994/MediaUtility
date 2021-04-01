@@ -188,21 +188,26 @@ extension FFmpeg {
     public var isOutput: Bool { !isInput }
 
     var arguments: [String] {
+
+      func flag(_ name: String, _ streamSpecifier: StreamSpecifier? = nil) -> String {
+        "-\(name)\(streamSpecifier?.argument ?? "")"
+      }
+
       var builder = ArgumentBuilder()
       options.forEach { option in
         switch option {
         case let .codec(codec, streamSpecifier: streamSpecifier):
-          builder.add(flag: "-c\(streamSpecifier?.argument ?? "")", value: codec)
+          builder.add(flag: flag("c", streamSpecifier), value: codec)
         case .format(let format):
-          builder.add(flag: "-f", value: format)
+          builder.add(flag: flag("f"), value: format)
         case .streamLoop(let number):
           precondition(isInput)
-          builder.add(flag: "-stream_loop", value: number)
+          builder.add(flag: flag("stream_loop"), value: number)
         case .duration(let duration):
-          builder.add(flag: "-t", value: duration)
+          builder.add(flag: flag("t"), value: duration)
         case .nonStdOptions(let options):
           options.forEach { (key, value) in
-            builder.add(flag: "-\(key)", value: value)
+            builder.add(flag: flag(key), value: value)
           }
         case .map(inputFileID: let inputFileID, streamSpecifier: let streamSpecifier,
                   isOptional: let isOptional, isNegativeMapping: let isNegativeMapping):
@@ -216,14 +221,27 @@ extension FFmpeg {
           builder.add(flag: "-map", value: argument)
         case .filter(filtergraph: let filtergraph, streamSpecifier: let streamSpecifier):
           precondition(isOutput)
-          builder.add(flag: "-filter\(streamSpecifier?.argument ?? "")", value: filtergraph)
+          builder.add(flag: flag("filter", streamSpecifier), value: filtergraph)
         case .audioChannels(let number, streamSpecifier: let streamSpecifier):
-          builder.add(flag: "-ac\(streamSpecifier?.argument ?? "")", value: number)
+          builder.add(flag: flag("ac", streamSpecifier), value: number)
         case .strict(let level):
           builder.add(flag: "-strict", value: level.rawValue)
         case let .bitrate(bitrate, streamSpecifier: streamSpecifier):
           precondition(isOutput)
-          builder.add(flag: "-b\(streamSpecifier.argument)", value: bitrate)
+          builder.add(flag: flag("b", streamSpecifier), value: bitrate)
+        case .pixelFormat(let pixelFormat, streamSpecifier: let streamSpecifier):
+          builder.add(flag: flag("pix_fmt", streamSpecifier), value: pixelFormat)
+        case .colorspace(let colorspace, streamSpecifier: let streamSpecifier):
+          precondition(isOutput)
+          builder.add(flag: flag("colorspace", streamSpecifier), value: colorspace)
+        case .colorPrimaries(let colorPrimaries, streamSpecifier: let streamSpecifier):
+          precondition(isOutput)
+          builder.add(flag: flag("color_primaries", streamSpecifier), value: colorPrimaries)
+        case .colorTransferCharacteristics(let value, streamSpecifier: let streamSpecifier):
+          precondition(isOutput)
+          builder.add(flag: flag("color_trc", streamSpecifier), value: value)
+        case .avOption(name: let name, value: let value, streamSpecifier: let streamSpecifier):
+          builder.add(flag: flag(name, streamSpecifier), value: value)
         }
       }
 
@@ -268,6 +286,12 @@ extension FFmpeg {
     /// Set the number of audio channels. For output streams it is set by default to the number of input audio channels. For input streams this option only makes sense for audio grabbing devices and raw demuxers and is mapped to the corresponding demuxer options.
     case audioChannels(Int, streamSpecifier: StreamSpecifier?)
     case strict(level: StrictLevel)
+    /// Set pixel format. Use -pix_fmts to show all the supported pixel formats. If the selected pixel format can not be selected, ffmpeg will print a warning and select the best pixel format supported by the encoder. If pix_fmt is prefixed by a +, ffmpeg will exit with an error if the requested pixel format can not be selected, and automatic conversions inside filtergraphs are disabled. If pix_fmt is a single +, ffmpeg selects the same pixel format as the input (or graph output) and automatic conversions are disabled.
+    case pixelFormat(String, streamSpecifier: StreamSpecifier?)
+    case colorspace(String, streamSpecifier: StreamSpecifier?)
+    case colorPrimaries(String, streamSpecifier: StreamSpecifier?)
+    case colorTransferCharacteristics(String, streamSpecifier: StreamSpecifier?)
+    case avOption(name: String, value: String, streamSpecifier: StreamSpecifier?)
 
     case nonStdOptions([String : String])
   }
