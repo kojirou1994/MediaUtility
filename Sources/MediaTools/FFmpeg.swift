@@ -206,7 +206,7 @@ extension FFmpeg {
           }
         case .map(inputFileID: let inputFileID, streamSpecifier: let streamSpecifier,
                   isOptional: let isOptional, isNegativeMapping: let isNegativeMapping):
-          precondition(!isInput)
+          precondition(isOutput)
           var argument = isNegativeMapping ? "-" : ""
           argument.append(inputFileID.description)
           streamSpecifier.map { argument.append($0.argument) }
@@ -215,12 +215,15 @@ extension FFmpeg {
           }
           builder.add(flag: "-map", value: argument)
         case .filter(filtergraph: let filtergraph, streamSpecifier: let streamSpecifier):
-          precondition(!isInput)
+          precondition(isOutput)
           builder.add(flag: "-filter\(streamSpecifier?.argument ?? "")", value: filtergraph)
         case .audioChannels(let number, streamSpecifier: let streamSpecifier):
           builder.add(flag: "-ac\(streamSpecifier?.argument ?? "")", value: number)
         case .strict(let level):
           builder.add(flag: "-strict", value: level.rawValue)
+        case let .bitrate(bitrate, streamSpecifier: streamSpecifier):
+          precondition(isOutput)
+          builder.add(flag: "-b\(streamSpecifier.argument)", value: bitrate)
         }
       }
 
@@ -252,6 +255,7 @@ extension FFmpeg {
      will copy all the streams except the second video, which will be encoded with libx264, and the 138th audio, which will be encoded with libvorbis.
      */
     case codec(String, streamSpecifier: StreamSpecifier?)
+    case bitrate(String, streamSpecifier: StreamSpecifier)
     /// When used as an input option (before -i), limit the duration of data read from the input file.
     /// When used as an output option (before an output url), stop writing the output after its duration reaches duration.
     /// duration must be a time duration specification, see (ffmpeg-utils)the Time duration section in the ffmpeg-utils(1) manual.
