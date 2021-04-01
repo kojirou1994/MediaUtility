@@ -182,7 +182,7 @@ extension FFmpeg {
     }
 
     public var url: String
-    let isInput: Bool
+    public let isInput: Bool
     public var options: [InputOutputOption]
 
     var arguments: [String] {
