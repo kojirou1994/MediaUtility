@@ -2,6 +2,11 @@ import Foundation
 import ExecutableDescription
 
 public struct FFmpeg: Executable {
+  public init(global: GlobalOptions, ios: [FFmpeg.FFmpegIO]) {
+    self.global = global
+    self.ios = ios
+  }
+
   public static let executableName: String = "ffmpeg"
 
   public let global: GlobalOptions
