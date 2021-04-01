@@ -33,6 +33,7 @@ extension FFmpeg {
       filterComplextScriptFilename: String? = nil, sdpFile: String? = nil,
       maxErrorRate: Double? = nil, stopAndExitOnError: Bool = false,
       noAutoConversionFilters: Bool = false, statsPeriod: Double? = nil,
+      enableStdin: Bool = true,
       progressUrl: String? = nil, debugTimestamp: Bool = false, benchmark: Bool = false,
       benchmarkAll: Bool = false, timelimit: Double? = nil, dumpPacket: Bool = false,
       dumpHex: Bool = false, showQPHistogram: Bool = false) {
@@ -49,6 +50,7 @@ extension FFmpeg {
       self.noAutoConversionFilters = noAutoConversionFilters
       self.statsPeriod = statsPeriod
       self.progressUrl = progressUrl
+      self.enableStdin = enableStdin
       self.debugTimestamp = debugTimestamp
       self.benchmark = benchmark
       self.benchmarkAll = benchmarkAll
@@ -105,27 +107,31 @@ extension FFmpeg {
     /// Send program-friendly progress information to url.
     public var progressUrl: String?
 
+    ///Enable interaction on standard input. On by default unless standard input is used as an input. To explicitly disable interaction you need to specify -nostdin.
+    ///Disabling interaction on standard input is useful, for example, if ffmpeg is in the background process group. Roughly the same result can be achieved with ffmpeg ... < /dev/null but it requires a shell.
+    public var enableStdin: Bool
+
     /// Print timestamp information. It is off by default. This option is mostly useful for testing and debugging purposes, and the output format may change from one version to another, so it should not be employed by portable scripts.
     /// See also the option -fdebug ts.
-    public var debugTimestamp: Bool = false
+    public var debugTimestamp: Bool
 
     /// Show benchmarking information at the end of an encode. Shows real, system and user time used and maximum memory consumption. Maximum memory consumption is not supported on all systems, it will usually display as 0 if not supported.
-    public var benchmark: Bool = false
+    public var benchmark: Bool
 
     /// Show benchmarking information during the encode. Shows real, system and user time used in various steps (audio/video encode/decode).
-    public var benchmarkAll: Bool = false
+    public var benchmarkAll: Bool
 
     /// Exit after ffmpeg has been running for duration seconds in CPU user time.
     public var timelimit: Double?
 
     /// Dump each input packet to stderr.
-    public var dumpPacket: Bool = false
+    public var dumpPacket: Bool
 
     /// When dumping packets, also dump the payload.
-    public var dumpHex: Bool = false
+    public var dumpHex: Bool
 
     /// Show QP histogram
-    public var showQPHistogram: Bool = false
+    public var showQPHistogram: Bool
 
     var arguments: [String] {
       var builder = ArgumentBuilder()
@@ -151,6 +157,7 @@ extension FFmpeg {
       builder.add(flag: "-qphist", when: showQPHistogram)
       builder.add(flag: "-max_error_rate", value: maxErrorRate)
       builder.add(flag: "-progress", value: progressUrl)
+      builder.add(flag: "-nostdin", when: !enableStdin)
       return builder.arguments
     }
   }
