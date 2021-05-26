@@ -3,6 +3,14 @@ import XCTest
 
 final class FFmpegTests: XCTestCase {
 
+  func testSize() {
+    print(MemoryLayout<FFmpeg>.size)
+    print(MemoryLayout<FFmpeg>.alignment)
+    print(MemoryLayout<FFmpeg>.stride)
+    print(MemoryLayout<FFmpeg>.self)
+    print(MemoryLayout.offset(of: \FFmpeg.ios)!)
+  }
+
   func testEmptyArg() {
     let empty = FFmpeg()
     XCTAssertEqual(empty.arguments, [])

@@ -163,6 +163,7 @@ public struct MatroskaChapter: Codable, Equatable {
       public var startTime: String
       public var endTime: String?
       public var isHidden: Bool?
+      public var isEnabled: Bool?
       public var displays: [ChapterDisplay]?
 
       @available(*, deprecated, renamed: "init(uid:startTime:endTime:isHidden:displays:)")
@@ -182,6 +183,7 @@ public struct MatroskaChapter: Codable, Equatable {
         case startTime = "ChapterTimeStart"
         case endTime = "ChapterTimeEnd"
         case isHidden = "ChapterFlagHidden"
+        case isEnabled = "ChapterFlagEnabled"
         case displays = "ChapterDisplay"
       }
 
