@@ -1,11 +1,11 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.4
 
 import PackageDescription
 
 let package = Package(
   name: "MediaUtility",
   platforms: [
-    .macOS(.v10_15)
+    .macOS(.v10_13)
   ],
   products: [
     .library(
@@ -23,16 +23,21 @@ let package = Package(
   targets: [
     .target(
       name: "MediaUtility",
-      dependencies: [.product(name: "KwiftExtension", package: "Kwift")]),
+      dependencies: [
+        .product(name: "KwiftExtension", package: "Kwift"),
+      ]),
     .target(
       name: "MediaTools",
       dependencies: [
         .product(name: "ExecutableLauncher", package: "Executable"),
-        "XMLParsing",
-        "MediaUtility"
+        .product(name: "XMLParsing", package: "XMLParsing"),
+        .target(name: "MediaUtility"),
       ]),
     .testTarget(
       name: "MediaUtilityTests",
-      dependencies: ["MediaUtility", "MediaTools"]),
+      dependencies: [
+        .target(name: "MediaUtility"),
+        .target(name: "MediaTools"),
+      ]),
   ]
 )

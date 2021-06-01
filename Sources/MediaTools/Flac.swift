@@ -54,6 +54,7 @@ public struct FlacEncoder: Executable {
 
 public struct FlacMD5 {
 
+  @available(macOS 10.15, *)
   public static func calculate(inputs: [String]) throws -> [String] {
     let md5 = try AnyExecutable(
       executableName: "metaflac",

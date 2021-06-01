@@ -261,10 +261,12 @@ public struct MkvMergeIdentification: Decodable {
 
 extension MkvMergeIdentification {
 
+  @available(macOS 10.15, *)
   public init(url: URL) throws {
     try self.init(filePath: url.path)
   }
 
+  @available(macOS 10.15, *)
   public init(filePath: String) throws {
     let mkvmerge = try AnyExecutable(
       executableName: "mkvmerge", arguments: ["-J", filePath]
