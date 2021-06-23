@@ -82,6 +82,14 @@ public struct MatroskaChapter: Codable, Equatable {
         public var country: String?
         public var languageIETF: String?
 
+        public init(from decoder: Decoder) throws {
+          let container = try decoder.container(keyedBy: CodingKeys.self)
+          string = try container.decodeIfPresent(String.self, forKey: .string) ?? ""
+          language = try container.decodeIfPresent(String.self, forKey: .language)
+          country = try container.decodeIfPresent(String.self, forKey: .country)
+          languageIETF = try container.decodeIfPresent(String.self, forKey: .languageIETF)
+        }
+
         private enum CodingKeys: String, CodingKey {
           case string = "ChapterString"
           case language = "ChapterLanguage"
