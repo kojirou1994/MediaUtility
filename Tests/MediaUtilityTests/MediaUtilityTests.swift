@@ -1,15 +1,10 @@
 import XCTest
 @testable import MediaUtility
 @testable import MediaTools
-import XMLParsing
+import XMLCoder
 import ExecutableLauncher
 
 final class MediaUtilityTests: XCTestCase {
-
-  override func setUp() {
-    super.setUp()
-    ExecutablePath.set(path: "/usr/local/bin")
-  }
 
   func testDecodeTimestamp() {
     func _testTimestamp(_ allZero: String, strict: Bool) {
