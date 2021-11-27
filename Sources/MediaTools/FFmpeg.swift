@@ -205,10 +205,6 @@ extension FFmpeg {
           builder.add(flag: flag("stream_loop"), value: number)
         case .duration(let duration):
           builder.add(flag: flag("t"), value: duration)
-        case .nonStdOptions(let options):
-          options.forEach { (key, value) in
-            builder.add(flag: flag(key), value: value)
-          }
         case .map(inputFileID: let inputFileID, streamSpecifier: let streamSpecifier,
                   isOptional: let isOptional, isNegativeMapping: let isNegativeMapping):
           precondition(isOutput)
@@ -240,8 +236,14 @@ extension FFmpeg {
         case .colorTransferCharacteristics(let value, streamSpecifier: let streamSpecifier):
           precondition(isOutput)
           builder.add(flag: flag("color_trc", streamSpecifier), value: value)
+        case .mapMetadata(outputSpec: let outputSpec, inputFileIndex: let inputFileIndex, inputSpec: let inputSpec):
+          builder.add(flag: "-map_metadata\(outputSpec?.argument ?? "")", value: "\(inputFileIndex)\(inputSpec?.argument ?? "")")
         case .avOption(name: let name, value: let value, streamSpecifier: let streamSpecifier):
           builder.add(flag: flag(name, streamSpecifier), value: value)
+        case .nonStdOptions(let options):
+          options.forEach { (key, value) in
+            builder.add(flag: flag(key), value: value)
+          }
         }
       }
 
@@ -291,9 +293,11 @@ extension FFmpeg {
     case colorspace(String, streamSpecifier: StreamSpecifier?)
     case colorPrimaries(String, streamSpecifier: StreamSpecifier?)
     case colorTransferCharacteristics(String, streamSpecifier: StreamSpecifier?)
-    case avOption(name: String, value: String, streamSpecifier: StreamSpecifier?)
+    case mapMetadata(outputSpec: MetadataSpecifier?, inputFileIndex: Int, inputSpec: MetadataSpecifier?)
 
+    case avOption(name: String, value: String, streamSpecifier: StreamSpecifier?)
     case nonStdOptions([String : String])
+
   }
 
   public enum StrictLevel: Int {
@@ -302,6 +306,26 @@ extension FFmpeg {
     case normal = 0
     case unofficial = -1
     case experimental = -2
+  }
+
+  public enum MetadataSpecifier {
+    case global
+    case stream(StreamSpecifier?)
+    case chapterIndex(Int)
+    case programIndex(Int)
+
+    var argument: String {
+      switch self {
+      case .global:
+        return ":g"
+      case .stream(let optional):
+        return ":s\(optional?.argument ?? "")"
+      case .chapterIndex(let int):
+        return ":c:\(int)"
+      case .programIndex(let int):
+        return ":p:\(int)"
+      }
+    }
   }
 
   /// Some options are applied per-stream, e.g. bitrate or codec. Stream specifiers are used to precisely specify which stream(s) a given option belongs to.
