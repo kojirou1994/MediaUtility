@@ -237,7 +237,11 @@ extension FFmpeg {
           precondition(isOutput)
           builder.add(flag: flag("color_trc", streamSpecifier), value: value)
         case .mapMetadata(outputSpec: let outputSpec, inputFileIndex: let inputFileIndex, inputSpec: let inputSpec):
+          precondition(isOutput)
           builder.add(flag: "-map_metadata\(outputSpec?.argument ?? "")", value: "\(inputFileIndex)\(inputSpec?.argument ?? "")")
+        case .mapChapters(inputFileIndex: let inputFileIndex):
+          precondition(isOutput)
+          builder.add(flag: "-map_chapters", value: inputFileIndex)
         case .avOption(name: let name, value: let value, streamSpecifier: let streamSpecifier):
           builder.add(flag: flag(name, streamSpecifier), value: value)
         case .nonStdOptions(let options):
@@ -294,6 +298,7 @@ extension FFmpeg {
     case colorPrimaries(String, streamSpecifier: StreamSpecifier?)
     case colorTransferCharacteristics(String, streamSpecifier: StreamSpecifier?)
     case mapMetadata(outputSpec: MetadataSpecifier?, inputFileIndex: Int, inputSpec: MetadataSpecifier?)
+    case mapChapters(inputFileIndex: Int)
 
     case avOption(name: String, value: String, streamSpecifier: StreamSpecifier?)
     case nonStdOptions([String : String])
