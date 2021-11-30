@@ -195,19 +195,25 @@ extension FFmpeg {
 
       var builder = ArgumentBuilder()
       options.forEach { option in
+        func preconditionOutput() {
+          precondition(isOutput, "option \(option) must be output!")
+        }
+        func preconditionInput() {
+          precondition(isInput, "option \(option) must be input!")
+        }
         switch option {
         case let .codec(codec, streamSpecifier: streamSpecifier):
           builder.add(flag: flag("c", streamSpecifier), value: codec)
         case .format(let format):
           builder.add(flag: flag("f"), value: format)
         case .streamLoop(let number):
-          precondition(isInput)
+          preconditionInput()
           builder.add(flag: flag("stream_loop"), value: number)
         case .duration(let duration):
           builder.add(flag: flag("t"), value: duration)
         case .map(inputFileID: let inputFileID, streamSpecifier: let streamSpecifier,
                   isOptional: let isOptional, isNegativeMapping: let isNegativeMapping):
-          precondition(isOutput)
+          preconditionOutput()
           var argument = isNegativeMapping ? "-" : ""
           argument.append(inputFileID.description)
           streamSpecifier.map { argument.append($0.argument) }
@@ -216,31 +222,31 @@ extension FFmpeg {
           }
           builder.add(flag: "-map", value: argument)
         case .filter(filtergraph: let filtergraph, streamSpecifier: let streamSpecifier):
-          precondition(isOutput)
+          preconditionOutput()
           builder.add(flag: flag("filter", streamSpecifier), value: filtergraph)
         case .audioChannels(let number, streamSpecifier: let streamSpecifier):
           builder.add(flag: flag("ac", streamSpecifier), value: number)
         case .strict(let level):
           builder.add(flag: "-strict", value: level.rawValue)
         case let .bitrate(bitrate, streamSpecifier: streamSpecifier):
-          precondition(isOutput)
+          preconditionOutput()
           builder.add(flag: flag("b", streamSpecifier), value: bitrate)
         case .pixelFormat(let pixelFormat, streamSpecifier: let streamSpecifier):
           builder.add(flag: flag("pix_fmt", streamSpecifier), value: pixelFormat)
         case .colorspace(let colorspace, streamSpecifier: let streamSpecifier):
-          precondition(isOutput)
+          preconditionOutput()
           builder.add(flag: flag("colorspace", streamSpecifier), value: colorspace)
         case .colorPrimaries(let colorPrimaries, streamSpecifier: let streamSpecifier):
-          precondition(isOutput)
+          preconditionOutput()
           builder.add(flag: flag("color_primaries", streamSpecifier), value: colorPrimaries)
         case .colorTransferCharacteristics(let value, streamSpecifier: let streamSpecifier):
-          precondition(isOutput)
+          preconditionOutput()
           builder.add(flag: flag("color_trc", streamSpecifier), value: value)
         case .mapMetadata(outputSpec: let outputSpec, inputFileIndex: let inputFileIndex, inputSpec: let inputSpec):
-          precondition(isOutput)
+          preconditionOutput()
           builder.add(flag: "-map_metadata\(outputSpec?.argument ?? "")", value: "\(inputFileIndex)\(inputSpec?.argument ?? "")")
         case .mapChapters(inputFileIndex: let inputFileIndex):
-          precondition(isOutput)
+          preconditionOutput()
           builder.add(flag: "-map_chapters", value: inputFileIndex)
         case .avOption(name: let name, value: let value, streamSpecifier: let streamSpecifier):
           builder.add(flag: flag(name, streamSpecifier), value: value)
