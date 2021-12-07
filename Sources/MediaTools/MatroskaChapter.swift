@@ -2,6 +2,58 @@ import XMLCoder
 import Foundation
 import MediaUtility
 
+extension KeyedDecodingContainer {
+  fileprivate func decode(_ type: MatroskaChapterBool.Type, forKey key: Self.Key) throws -> MatroskaChapterBool {
+    try decodeIfPresent(type, forKey: key) ?? .init(wrappedValue: nil)
+  }
+}
+
+extension KeyedEncodingContainer {
+  fileprivate mutating func encode(_ value: MatroskaChapterBool, forKey key: KeyedEncodingContainer<K>.Key) throws {
+    try encodeIfPresent(value.rawValue, forKey: key)
+  }
+}
+
+@propertyWrapper
+public struct MatroskaChapterBool: Codable, Equatable, CustomStringConvertible {
+  public var wrappedValue: Bool?
+
+  public init(wrappedValue: Bool?) {
+    self.wrappedValue = wrappedValue
+  }
+
+  private init(_ rawValue: UInt?) {
+    if let v = rawValue {
+      wrappedValue = v > 0
+    } else {
+      wrappedValue = nil
+    }
+  }
+
+  public var description: String { String(describing: wrappedValue) }
+
+  fileprivate var rawValue: UInt? {
+    if let v = wrappedValue {
+      return v ? 1 : 0
+    } else {
+      return nil
+    }
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    if let rawValue = rawValue {
+      try container.encode(rawValue)
+    } else {
+      try container.encodeNil()
+    }
+  }
+
+  public init(from decoder: Decoder) throws {
+    self.init(try decoder.singleValueContainer().decode(UInt.self))
+  }
+}
+
 public struct MatroskaChapter: Codable, Equatable {
 
   public var entries: [EditionEntry]
@@ -30,10 +82,19 @@ public struct MatroskaChapter: Codable, Equatable {
     }
 
     public var uid: UInt
+
+    @MatroskaChapterBool
     public var isHidden: Bool?
+
+    @MatroskaChapterBool
     public var isManaged: Bool?
+
+    @MatroskaChapterBool
     public var isOrdered: Bool?
+
+    @MatroskaChapterBool
     public var isDefault: Bool?
+
     public var chapters: [ChapterAtom]
 
     private enum CodingKeys: String, CodingKey {
@@ -55,10 +116,17 @@ public struct MatroskaChapter: Codable, Equatable {
       }
 
       public var uid: UInt
+
       public var startTime: String
+
       public var endTime: String?
+
+      @MatroskaChapterBool
       public var isHidden: Bool?
+
+      @MatroskaChapterBool
       public var isEnabled: Bool?
+      
       public var displays: [ChapterDisplay]?
 
       private enum CodingKeys: String, CodingKey {
@@ -106,7 +174,10 @@ public struct MatroskaChapter: Codable, Equatable {
   """
 
   private func encodedXML() throws -> Data {
-    try XMLEncoder().encode(self, withRootKey: "Chapters")
+    let encoder = XMLEncoder()
+    encoder.outputFormatting = .prettyPrinted
+    encoder.prettyPrintIndentation = .spaces(2)
+    return try encoder.encode(self, withRootKey: "Chapters")
   }
 
   public func exportXML() throws -> Data {
