@@ -72,7 +72,7 @@ public struct MatroskaChapter: Codable, Equatable {
 
   public struct EditionEntry: Codable, Equatable {
 
-    public init(uid: UInt, isHidden: Bool? = nil, isManaged: Bool? = nil, isOrdered: Bool? = nil, isDefault: Bool? = nil, chapters: [ChapterAtom]) {
+    public init(uid: UInt = 0, isHidden: Bool? = nil, isManaged: Bool? = nil, isOrdered: Bool? = nil, isDefault: Bool? = nil, chapters: [ChapterAtom]) {
       self.uid = uid
       self.isHidden = isHidden
       self.isManaged = isManaged
@@ -107,12 +107,16 @@ public struct MatroskaChapter: Codable, Equatable {
     }
 
     public struct ChapterAtom: Codable, Equatable {
-      public init(uid: UInt, startTime: String, endTime: String? = nil, isHidden: Bool? = nil, displays: [ChapterDisplay]? = nil) {
+      public init(uid: UInt = 0, startTime: String, endTime: String? = nil, isHidden: Bool? = nil, displays: [ChapterDisplay]? = nil) {
         self.uid = uid
         self.startTime = startTime
         self.endTime = endTime
         self.isHidden = isHidden
         self.displays = displays
+      }
+
+      public init(startTime: Timestamp, endTime: Timestamp? = nil) {
+        self.init(startTime: startTime.toString(displayNanoSecond: true), endTime: endTime?.toString(displayNanoSecond: true))
       }
 
       public var uid: UInt
@@ -197,8 +201,29 @@ public struct MatroskaChapter: Codable, Equatable {
 
 extension MatroskaChapter.EditionEntry.ChapterAtom {
   @_transparent
+  /// safe start timestamp
   public var timestamp: Timestamp? {
     Timestamp(string: startTime, strictMode: false)
+  }
+
+  /// start timestamp, getter is not safe
+  public var startTimestamp: Timestamp {
+    get {
+      Timestamp(string: startTime, strictMode: false)!
+    }
+    set {
+      startTime = newValue.toString(displayNanoSecond: true)
+    }
+  }
+
+  /// end timestamp, getter is not safe
+  public var endTimestamp: Timestamp? {
+    get {
+      endTime.map { Timestamp(string: $0, strictMode: false)! }
+    }
+    set {
+      endTime = newValue?.toString(displayNanoSecond: true)
+    }
   }
 }
 
@@ -212,6 +237,27 @@ extension MatroskaChapter.EditionEntry {
       return chapters[0].timestamp?.value == 0
     default:
       return false
+    }
+  }
+}
+
+extension MatroskaChapter {
+  public mutating func fillUIDs() {
+    var uids = Set<UInt>()
+    func nextUID() -> UInt {
+      while true {
+        let result = uids.insert(.random(in: UInt.min...UInt.max))
+        if result.inserted {
+          return result.memberAfterInsert
+        }
+      }
+      fatalError("Cannot generate enough uids!")
+    }
+    entries.mutateEach {
+      $0.uid = nextUID()
+      $0.chapters.mutateEach {
+        $0.uid = nextUID()
+      }
     }
   }
 }

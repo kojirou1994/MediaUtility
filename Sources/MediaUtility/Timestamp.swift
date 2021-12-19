@@ -168,6 +168,11 @@ extension Timestamp {
     .init(ns: 1_000_000_000)
   }
 
+  @inlinable
+  public static var zero: Timestamp {
+    .init(ns: 0)
+  }
+
   public static func * (lhs: Timestamp, rhs: UInt64) -> Timestamp {
     .init(ns: lhs.value * rhs)
   }
