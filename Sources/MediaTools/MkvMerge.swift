@@ -48,7 +48,7 @@ public struct MkvMerge: Executable {
 extension MkvMerge {
   public struct GlobalOption {
 
-    public init(verbose: Bool = false, quiet: Bool, webm: Bool = false, title: String? = nil, defaultLanguage: String? = nil, chapterLanguage: String? = nil, chapterFile: String? = nil, generateChaptersMode: MkvMerge.GlobalOption.GenerateChaptersMode? = nil, chaptersNameTemplate: MkvMerge.GlobalOption.ChaptersNameTemplate? = nil, trackOrder: [MkvMerge.GlobalOption.TrackOrder]? = nil, split: MkvMerge.GlobalOption.Split? = nil, debug: String? = nil, experimentalFeatures: [MkvMerge.GlobalOption.ExperimentFeature]? = nil) {
+    public init(verbose: Bool = false, quiet: Bool, webm: Bool = false, title: String? = nil, defaultLanguage: String? = nil, chapterLanguage: String? = nil, chapterFile: String? = nil, generateChaptersMode: MkvMerge.GlobalOption.GenerateChaptersMode? = nil, chaptersNameTemplate: MkvMerge.GlobalOption.ChaptersNameTemplate? = nil, trackOrder: [MkvMerge.GlobalOption.TrackOrder]? = nil, split: MkvMerge.GlobalOption.Split? = nil, flushOnClose: Bool = false, debug: String? = nil, experimentalFeatures: [MkvMerge.GlobalOption.ExperimentFeature]? = nil) {
       self.verbose = verbose
       self.quiet = quiet
       self.webm = webm
@@ -60,6 +60,7 @@ extension MkvMerge {
       self.chaptersNameTemplate = chaptersNameTemplate
       self.trackOrder = trackOrder
       self.split = split
+      self.flushOnClose = flushOnClose
       self.debug = debug
       self.experimentalFeatures = experimentalFeatures
     }
@@ -87,6 +88,8 @@ extension MkvMerge {
     public var split: Split?
 
     // Other options
+    /// Tells the program to flush all data cached in memory to storage when closing files opened for writing.
+    public var flushOnClose: Bool
     /// Turns on debugging output
     public var debug: String?
     /// Turns on experimental feature
@@ -292,6 +295,7 @@ extension MkvMerge {
 
       builder.add(flag: "--split", value: split?.argument)
 
+      builder.add(flag: "--flush-on-close", when: flushOnClose)
       builder.add(flag: "--debug", value: debug)
       builder.add(flag: "--engage", value: experimentalFeatures?.map(\.rawValue).joined(separator: ","))
 

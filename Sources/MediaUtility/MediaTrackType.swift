@@ -1,4 +1,4 @@
-public enum MediaTrackType: String, Codable, CustomStringConvertible {
+public enum MediaTrackType: String, Codable, CustomStringConvertible, CaseIterable {
   case video
   case audio
   case subtitles
