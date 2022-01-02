@@ -254,6 +254,15 @@ extension FFmpeg {
           options.forEach { (key, value) in
             builder.add(flag: flag(key), value: value)
           }
+        case .startPosition(let position):
+          builder.add(flag: "-ss", value: position)
+        case .endPosition(let position):
+          builder.add(flag: "-to", value: position)
+        case .frameCount(let count, streamSpecifier: let streamSpecifier):
+          preconditionOutput()
+          builder.add(flag: flag("frames", streamSpecifier), value: count)
+        case .frameSize(width: let width, height: let height, streamSpecifier: let streamSpecifier):
+          builder.add(flag: flag("s", streamSpecifier), value: "\(width)x\(height)")
         }
       }
 
@@ -291,6 +300,10 @@ extension FFmpeg {
     /// duration must be a time duration specification, see (ffmpeg-utils)the Time duration section in the ffmpeg-utils(1) manual.
     /// -to and -t are mutually exclusive and -t has priority.
     case duration(String)
+    case startPosition(String)
+    case endPosition(String)
+    case frameCount(Int, streamSpecifier: StreamSpecifier)
+    case frameSize(width: Int32, height: Int32, streamSpecifier: StreamSpecifier?)
     // TODO: sync_file_id not implement
     case map(inputFileID: Int, streamSpecifier: StreamSpecifier?, isOptional: Bool, isNegativeMapping: Bool)
     /// Create the filtergraph specified by filtergraph and use it to filter the stream.
