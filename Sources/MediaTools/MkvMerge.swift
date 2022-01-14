@@ -86,6 +86,7 @@ extension MkvMerge {
 
     // 2.5. File splitting, linking, appending and concatenation (more global options)
     public var split: Split?
+    public var appendMode: AppendMode?
 
     // Other options
     /// Tells the program to flush all data cached in memory to storage when closing files opened for writing.
@@ -268,6 +269,14 @@ extension MkvMerge {
         }
       }
     }
+
+    public enum AppendMode: String, CaseIterable, Codable {
+      case file
+      case track
+
+      var argument: String { rawValue }
+    }
+
     public struct TrackOrder {
       public var fid: Int
       public var tid: Int
@@ -294,6 +303,7 @@ extension MkvMerge {
       builder.add(flag: "--track-order", value: trackOrder?.map { $0.argument }.joined(separator: ","))
 
       builder.add(flag: "--split", value: split?.argument)
+      builder.add(flag: "--append-mode", value: appendMode?.argument)
 
       builder.add(flag: "--flush-on-close", when: flushOnClose)
       builder.add(flag: "--debug", value: debug)
