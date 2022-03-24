@@ -16,7 +16,7 @@ let package = Package(
       targets: ["MediaTools"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/kojirou1994/Kwift.git", from: "0.8.0"),
+    .package(url: "https://github.com/kojirou1994/Kwift.git", from: "1.0.0"),
     .package(url: "https://github.com/kojirou1994/Executable.git", .upToNextMinor(from: "0.4.0")),
     .package(url: "https://github.com/MaxDesiatov/XMLCoder.git", .upToNextMajor(from: "0.13.0"))
   ],
@@ -24,11 +24,11 @@ let package = Package(
     .target(
       name: "MediaUtility",
       dependencies: [
-        .product(name: "KwiftExtension", package: "Kwift"),
       ]),
     .target(
       name: "MediaTools",
       dependencies: [
+        .product(name: "KwiftExtension", package: "Kwift"),
         .product(name: "ExecutableLauncher", package: "Executable"),
         .product(name: "XMLCoder", package: "XMLCoder"),
         .target(name: "MediaUtility"),

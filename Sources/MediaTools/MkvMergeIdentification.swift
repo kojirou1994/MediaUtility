@@ -2,6 +2,7 @@ import Foundation
 import MediaUtility
 import ExecutableDescription
 import ExecutableLauncher
+import KwiftExtension
 
 @available(*, deprecated, renamed: "MkvMergeIdentification")
 public typealias MkvmergeIdentification = MkvMergeIdentification
@@ -272,15 +273,6 @@ extension MkvMergeIdentification {
       executableName: "mkvmerge", arguments: ["-J", filePath]
     ).launch(use: TSCExecutableLauncher(outputRedirection: .collect)).output.get()
     self = try JSONDecoder().kwiftDecode(from: mkvmerge)
-  }
-
-  public var primaryLanguages: [String] {
-    var result = [String]()
-    result.append(
-      tracks.first { $0.type == .video }?.properties.language ?? "und")
-    result.append(
-      tracks.first { $0.type == .audio }?.properties.language ?? "und")
-    return result
   }
 
 }

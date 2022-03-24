@@ -1,5 +1,3 @@
-import KwiftExtension
-
 public struct Timestamp: LosslessStringConvertible {
   /// time in ns
   public var value: UInt64

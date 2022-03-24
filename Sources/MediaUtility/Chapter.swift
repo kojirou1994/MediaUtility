@@ -1,5 +1,4 @@
 import Foundation
-import KwiftExtension
 
 public struct Chapter {
 
@@ -79,8 +78,8 @@ public struct Chapter {
       let title = String(lines[index * 2 + 1])
       nodes.append(
         .init(
-          title: String(title[14...]),
-          timestamp: Timestamp(String(timestamp[10...]))!))
+          title: String(title.dropFirst(14)),
+          timestamp: Timestamp(String(timestamp.dropFirst(10)))!))
     }
   }
 
