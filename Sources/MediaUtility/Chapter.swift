@@ -58,9 +58,7 @@ public struct Chapter {
   }
 
   public init(ogmFileURL: URL) throws {
-    let str = try autoreleasepool {
-      try String(contentsOf: ogmFileURL)
-    }
+    let str = try String(contentsOf: ogmFileURL)
     let lines = str.split(separator: "\n")
     guard lines.count > 0 else {
       throw OgmParseError.empty
