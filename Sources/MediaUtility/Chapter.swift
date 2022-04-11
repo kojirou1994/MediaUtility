@@ -17,9 +17,7 @@ public struct Chapter {
   /// chapter line like 00:00:00.000 ChapterName
   /// - Parameter fileURL: file location
   public init(fileURL: URL) throws {
-    let content = try autoreleasepool {
-      try String(contentsOf: fileURL)
-    }
+    let content = try String(contentsOf: fileURL)
     nodes = content.split(separator: "\n")
       .compactMap { line -> ChapterNode? in
         if line.isEmpty {
