@@ -37,7 +37,7 @@ extension FFmpeg {
       enableStdin: Bool = true,
       progressUrl: String? = nil, debugTimestamp: Bool = false, benchmark: Bool = false,
       benchmarkAll: Bool = false, timelimit: Double? = nil, dumpPacket: Bool = false,
-      dumpHex: Bool = false, showQPHistogram: Bool = false) {
+      dumpHex: Bool = false, showQPHistogram: Bool = false, initHardwareDevices: [HardwareDevice] = []) {
       self.hideBanner = hideBanner
       self.cpuflags = cpuflags
       self.overwrite = overwrite
@@ -60,6 +60,7 @@ extension FFmpeg {
       self.dumpPacket = dumpPacket
       self.dumpHex = dumpHex
       self.showQPHistogram = showQPHistogram
+      self.initHardwareDevices = initHardwareDevices
     }
 
     /// Suppress printing banner.
@@ -139,6 +140,8 @@ extension FFmpeg {
     /// Show QP histogram
     public var showQPHistogram: Bool
 
+    public var initHardwareDevices: [HardwareDevice]
+
     var arguments: [String] {
       var builder = ArgumentBuilder()
       builder.add(flag: "-hide_banner", when: hideBanner)
@@ -165,7 +168,67 @@ extension FFmpeg {
       builder.add(flag: "-max_error_rate", value: maxErrorRate)
       builder.add(flag: "-progress", value: progressUrl)
       builder.add(flag: "-nostdin", when: !enableStdin)
+      initHardwareDevices.forEach { hwDevice in
+        builder.add(flag: "-init_hw_device", value: hwDevice)
+      }
       return builder.arguments
+    }
+
+    public struct HardwareDevice: CustomArgumentConvertible {
+      var argument: String {
+        var result = type.rawValue
+        if !name.isEmpty {
+          result += "="
+          result += name
+        }
+        if let device = device {
+          switch device {
+          case .create(let device, let parameters):
+            result += ":"
+            result += device
+            parameters.forEach { parameter in
+              result += ","
+              result += parameter.key
+              result += "="
+              result += parameter.value
+            }
+          case .derive(let sourceName):
+            result += "@"
+            result += sourceName
+          }
+        }
+        return result
+      }
+
+      public init(type: HardwareType, name: String = "", device: DeviceType? = nil) {
+        self.type = type
+        self.name = name
+        self.device = device
+      }
+
+      public var type: HardwareType
+      public var name: String
+      public var device: DeviceType?
+
+      public struct HardwareType: RawRepresentable, ExpressibleByStringLiteral {
+
+        public init(stringLiteral value: String) {
+          self.init(rawValue: value)
+        }
+
+        public init(rawValue: String) {
+          self.rawValue = rawValue
+        }
+
+        public let rawValue: String
+
+        public static let videotoolbox: Self = "videotoolbox"
+      }
+
+      public enum DeviceType {
+        case create(device: String, parameters: [String: String])
+        case derive(sourceName: String)
+      }
     }
   }
 }
@@ -242,6 +305,9 @@ extension FFmpeg {
         case .colorTransferCharacteristics(let value, streamSpecifier: let streamSpecifier):
           preconditionOutput()
           builder.add(flag: flag("color_trc", streamSpecifier), value: value)
+        case .hardwareAcceleration(let value, streamSpecifier: let streamSpecifier):
+          preconditionOutput()
+          builder.add(flag: flag("hwaccel", streamSpecifier), value: value)
         case .mapMetadata(outputSpec: let outputSpec, inputFileIndex: let inputFileIndex, inputSpec: let inputSpec):
           preconditionOutput()
           builder.add(flag: "-map_metadata\(outputSpec?.argument ?? "")", value: "\(inputFileIndex)\(inputSpec?.argument ?? "")")
@@ -316,6 +382,7 @@ extension FFmpeg {
     case colorspace(String, streamSpecifier: StreamSpecifier?)
     case colorPrimaries(String, streamSpecifier: StreamSpecifier?)
     case colorTransferCharacteristics(String, streamSpecifier: StreamSpecifier?)
+    case hardwareAcceleration(String, streamSpecifier: StreamSpecifier?)
     case mapMetadata(outputSpec: MetadataSpecifier?, inputFileIndex: Int, inputSpec: MetadataSpecifier?)
     case mapChapters(inputFileIndex: Int)
 
