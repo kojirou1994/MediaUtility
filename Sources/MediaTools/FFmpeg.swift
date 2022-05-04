@@ -306,7 +306,7 @@ extension FFmpeg {
           preconditionOutput()
           builder.add(flag: flag("color_trc", streamSpecifier), value: value)
         case .hardwareAcceleration(let value, streamSpecifier: let streamSpecifier):
-          preconditionOutput()
+          preconditionInput()
           builder.add(flag: flag("hwaccel", streamSpecifier), value: value)
         case .mapMetadata(outputSpec: let outputSpec, inputFileIndex: let inputFileIndex, inputSpec: let inputSpec):
           preconditionOutput()
