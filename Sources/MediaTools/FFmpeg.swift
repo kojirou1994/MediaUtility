@@ -28,6 +28,7 @@ public struct FFmpeg: Executable {
 extension FFmpeg {
   public struct GlobalOptions {
     public init(
+      logLevel: LogLevel? = nil,
       hideBanner: Bool = false,
       cpuflags: String? = nil, overwrite: Bool? = nil, filterThreadNumber: Int? = nil,
       stats: Bool = true, filterComplexThreadNumber: Int? = nil, filtergraph: String? = nil,
@@ -37,7 +38,9 @@ extension FFmpeg {
       enableStdin: Bool = true,
       progressUrl: String? = nil, debugTimestamp: Bool = false, benchmark: Bool = false,
       benchmarkAll: Bool = false, timelimit: Double? = nil, dumpPacket: Bool = false,
-      dumpHex: Bool = false, showQPHistogram: Bool = false, initHardwareDevices: [HardwareDevice] = []) {
+      dumpHex: Bool = false, showQPHistogram: Bool = false, initHardwareDevices: [HardwareDevice] = []
+    ) {
+      self.logLevel = logLevel
       self.hideBanner = hideBanner
       self.cpuflags = cpuflags
       self.overwrite = overwrite
@@ -62,6 +65,8 @@ extension FFmpeg {
       self.showQPHistogram = showQPHistogram
       self.initHardwareDevices = initHardwareDevices
     }
+
+    public var logLevel: LogLevel?
 
     /// Suppress printing banner.
     /// All FFmpeg tools will normally show a copyright notice, build options and library versions. This option can be used to suppress printing this information.
@@ -144,6 +149,7 @@ extension FFmpeg {
 
     var arguments: [String] {
       var builder = ArgumentBuilder()
+      builder.add(flag: "-loglevel", value: logLevel)
       builder.add(flag: "-hide_banner", when: hideBanner)
       builder.add(flag: "-cpuflags", value: cpuflags)
       builder.add(flag: "-filter_threads", value: filterThreadNumber)
@@ -172,6 +178,53 @@ extension FFmpeg {
         builder.add(flag: "-init_hw_device", value: hwDevice)
       }
       return builder.arguments
+    }
+
+    public struct LogLevel: CustomArgumentConvertible {
+      public init(enabledFlags: [Flag] = [], disabledFlags: [Flag] = [], level: Level? = nil) {
+        self.enabledFlags = enabledFlags
+        self.disabledFlags = disabledFlags
+        self.level = level
+      }
+
+      var argument: String {
+        var result = ""
+        enabledFlags.forEach { flag in
+          result += "+"
+          result += flag.rawValue
+        }
+        disabledFlags.forEach { flag in
+          result += "-"
+          result += flag.rawValue
+        }
+        if let level = level {
+          if !result.isEmpty {
+            result += "+"
+          }
+          result += level.rawValue
+        }
+        return result
+      }
+
+      public var enabledFlags: [Flag]
+      public var disabledFlags: [Flag]
+      public var level: Level?
+
+      public struct Flag: RawRepresentable {
+        public init(rawValue: String) {
+          self.rawValue = rawValue
+        }
+
+        public let rawValue: String
+      }
+
+      public struct Level: RawRepresentable {
+        public init(rawValue: String) {
+          self.rawValue = rawValue
+        }
+
+        public let rawValue: String
+      }
     }
 
     public struct HardwareDevice: CustomArgumentConvertible {
@@ -474,4 +527,63 @@ extension FFmpeg {
       }
     }
   }
+}
+
+extension FFmpeg.GlobalOptions.LogLevel.Flag: ExpressibleByStringLiteral {
+  public init(stringLiteral value: String) {
+    self.init(rawValue: value)
+  }
+}
+
+public extension FFmpeg.GlobalOptions.LogLevel.Flag {
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var `repeat`: Self { "repeat" }
+
+  @_alwaysEmitIntoClient
+  static var level: Self { "level" }
+}
+
+extension FFmpeg.GlobalOptions.LogLevel.Level: ExpressibleByStringLiteral {
+  public init(stringLiteral value: String) {
+    self.init(rawValue: value)
+  }
+}
+
+public extension FFmpeg.GlobalOptions.LogLevel.Level {
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var quiet: Self { "quiet" }
+
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var panic: Self { "panic" }
+
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var fatal: Self { "fatal" }
+
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var error: Self { "error" }
+
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var warning: Self { "warning" }
+
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var info: Self { "info" }
+
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var verbose: Self { "verbose" }
+
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var debug: Self { "debug" }
+
+  @inlinable
+  @_alwaysEmitIntoClient
+  static var trace: Self { "trace" }
 }
