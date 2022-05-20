@@ -361,6 +361,18 @@ extension MkvMerge {
         }
 
       }
+
+      public enum Flag: String {
+        case defaultTrack = "default-track"
+        case trackEnabled = "track-enabled"
+        case forcedDisplay = "forced-display"
+        case hearingImpaired = "hearing-impaired"
+        case visualImpaired = "visual-impaired"
+        case textDescriptions = "text-descriptions"
+        case original
+        case commentary
+      }
+
       case audioTracks(TrackSelect)
       case videoTracks(TrackSelect)
       case subtitleTracks(TrackSelect)
@@ -369,6 +381,9 @@ extension MkvMerge {
       case attachments(TrackSelect)
       case noChapters
       case noGlobalTags
+//      case sync(tid: Int, d: Double, o: Double?, p: Double?)
+//      case cues(tid: Int, String) // none|iframes|all
+      case flag(tid: Int, Flag, Bool)
       case trackName(tid: Int, name: String)
       case language(tid: Int, language: String)
 
@@ -438,6 +453,8 @@ extension MkvMerge {
           return ["--no-chapters"]
         case .noGlobalTags:
           return ["--no-global-tags"]
+        case let .flag(tid: tid, flag, enabled):
+          return ["--\(flag.rawValue)-flag", "\(tid):\(enabled ? "1" : "0")"]
         case .trackName(let tid, let name):
           return ["--track-name", "\(tid):\(name)"]
         case .language(let tid, language: let lang):
