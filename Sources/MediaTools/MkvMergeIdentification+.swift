@@ -23,3 +23,9 @@ extension MkvMergeIdentification {
   }
 
 }
+
+extension MkvMergeIdentification.Track {
+  public var trackType: MediaTrackType {
+    .init(rawValue: type)!
+  }
+}
