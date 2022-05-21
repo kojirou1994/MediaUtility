@@ -1,7 +1,7 @@
 public struct MkvMergeIdentification: Decodable {
   public var attachments: [Attachment]?
   public struct Attachment: Decodable {
-    public var contentType: String
+    public var contentType: String?
     public var description: String?
     public var fileName: String
     public var id: UInt
@@ -38,14 +38,14 @@ public struct MkvMergeIdentification: Decodable {
       public var duration: UInt?
       public var isProvidingTimestamps: Bool?
       public var muxingApplication: String?
-      public var nextSegmentUid: String
+      public var nextSegmentUid: String?
       public var otherFile: [String]?
       public var playlist: Bool?
       public var playlistChapters: UInt?
       public var playlistDuration: UInt?
       public var playlistFile: [String]?
       public var playlistSize: UInt?
-      public var previousSegmentUid: String
+      public var previousSegmentUid: String?
       public var programs: [Program]?
       public struct Program: Decodable {
         public var programNumber: UInt?
@@ -57,7 +57,7 @@ public struct MkvMergeIdentification: Decodable {
           case serviceProvider = "service_provider"
         }
       }
-      public var segmentUid: String
+      public var segmentUid: String?
       public var title: String?
       public var writingApplication: String?
       private enum CodingKeys: String, CodingKey {
@@ -83,10 +83,10 @@ public struct MkvMergeIdentification: Decodable {
     }
     public var recognized: Bool
     public var supported: Bool
-    public var type: String
+    public var type: String?
   }
   public var errors: [String]?
-  public var fileName: String
+  public var fileName: String?
   public var globalTags: [GlobalTag]?
   public struct GlobalTag: Decodable {
     public var numEntries: Int
@@ -124,7 +124,7 @@ public struct MkvMergeIdentification: Decodable {
       public var codecName: String?
       public var codecPrivateData: String?
       public var codecPrivateLength: UInt?
-      public var contentEncodingAlgorithms: String
+      public var contentEncodingAlgorithms: String?
       public var defaultDuration: UInt?
       public var defaultTrack: Bool?
       public var displayDimensions: String?
@@ -142,7 +142,7 @@ public struct MkvMergeIdentification: Decodable {
       public var minimumTimestamp: UInt?
       public var multiplexedTracks: [UInt]?
       public var number: UInt?
-      public var packetizer: String
+      public var packetizer: String?
       public var pixelDimensions: String?
       public var programNumber: UInt?
       public var stereoMode: UInt?
