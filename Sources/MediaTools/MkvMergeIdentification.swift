@@ -1,5 +1,5 @@
 public struct MkvMergeIdentification: Decodable {
-  public var attachments: [Attachment]
+  public var attachments: [Attachment]?
   public struct Attachment: Decodable {
     public var contentType: String
     public var description: String?
@@ -21,16 +21,16 @@ public struct MkvMergeIdentification: Decodable {
       case type
     }
   }
-  public var chapters: [Chapter]
+  public var chapters: [Chapter]?
   public struct Chapter: Decodable {
     public var numEntries: Int
     private enum CodingKeys: String, CodingKey {
       case numEntries = "num_entries"
     }
   }
-  public var container: Container
+  public var container: Container?
   public struct Container: Decodable {
-    public var properties: Properties
+    public var properties: Properties?
     public struct Properties: Decodable {
       public var containerType: Int?
       public var dateLocal: String?
@@ -39,14 +39,14 @@ public struct MkvMergeIdentification: Decodable {
       public var isProvidingTimestamps: Bool?
       public var muxingApplication: String?
       public var nextSegmentUid: String
-      public var otherFile: [String]
+      public var otherFile: [String]?
       public var playlist: Bool?
       public var playlistChapters: UInt?
       public var playlistDuration: UInt?
-      public var playlistFile: [String]
+      public var playlistFile: [String]?
       public var playlistSize: UInt?
       public var previousSegmentUid: String
-      public var programs: [Program]
+      public var programs: [Program]?
       public struct Program: Decodable {
         public var programNumber: UInt?
         public var serviceName: String?
@@ -85,9 +85,9 @@ public struct MkvMergeIdentification: Decodable {
     public var supported: Bool
     public var type: String
   }
-  public var errors: [String]
+  public var errors: [String]?
   public var fileName: String
-  public var globalTags: [GlobalTag]
+  public var globalTags: [GlobalTag]?
   public struct GlobalTag: Decodable {
     public var numEntries: Int
     private enum CodingKeys: String, CodingKey {
@@ -95,7 +95,7 @@ public struct MkvMergeIdentification: Decodable {
     }
   }
   public var identificationFormatVersion: Int?
-  public var trackTags: [TrackTag]
+  public var trackTags: [TrackTag]?
   public struct TrackTag: Decodable {
     public var numEntries: Int
     public var trackId: Int
@@ -104,11 +104,11 @@ public struct MkvMergeIdentification: Decodable {
       case trackId = "track_id"
     }
   }
-  public var tracks: [Track]
+  public var tracks: [Track]?
   public struct Track: Decodable {
     public var codec: String
     public var id: Int
-    public var properties: Properties
+    public var properties: Properties?
     public struct Properties: Decodable {
       public var aacIsSbr: AacIsSbr?
       public enum AacIsSbr: String, Decodable {
@@ -140,7 +140,7 @@ public struct MkvMergeIdentification: Decodable {
       public var language: String?
       public var languageIetf: String?
       public var minimumTimestamp: UInt?
-      public var multiplexedTracks: [UInt]
+      public var multiplexedTracks: [UInt]?
       public var number: UInt?
       public var packetizer: String
       public var pixelDimensions: String?
@@ -204,7 +204,7 @@ public struct MkvMergeIdentification: Decodable {
     }
     public var type: String
   }
-  public var warnings: [String]
+  public var warnings: [String]?
   private enum CodingKeys: String, CodingKey {
     case attachments
     case chapters
