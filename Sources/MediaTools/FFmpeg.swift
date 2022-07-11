@@ -382,6 +382,8 @@ extension FFmpeg {
           builder.add(flag: flag("frames", streamSpecifier), value: count)
         case .frameSize(width: let width, height: let height, streamSpecifier: let streamSpecifier):
           builder.add(flag: flag("s", streamSpecifier), value: "\(width)x\(height)")
+        case .raw(let raw):
+          builder.add(flag: raw)
         }
       }
 
@@ -441,6 +443,7 @@ extension FFmpeg {
 
     case avOption(name: String, value: String, streamSpecifier: StreamSpecifier?)
     case nonStdOptions([String : String])
+    case raw(String)
 
   }
 
