@@ -1,5 +1,4 @@
-import ExecutableDescription
-import ExecutableLauncher
+import TSCExecutableLauncher
 
 public struct FlacEncoder: Executable {
 

@@ -1,7 +1,6 @@
 import Foundation
 import MediaUtility
-import ExecutableDescription
-import ExecutableLauncher
+import TSCExecutableLauncher
 import KwiftExtension
 
 @available(*, deprecated, renamed: "MkvMergeIdentification")
