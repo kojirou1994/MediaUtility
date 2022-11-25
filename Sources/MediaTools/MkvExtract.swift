@@ -30,24 +30,6 @@ public enum MkvExtractionMode {
     .chapter(simple: false, language: nil, filename: filename)
   }
 
-  @available(*, deprecated, message: "Use chapter(simple:filename:) instead")
-  public static func chapter(_ opt: ChapterExtractionOption) -> Self {
-    .chapter(simple: opt.simple, language: nil, filename: opt.outputFilename)
-  }
-
-  @available(*, deprecated, message: "Use tracks(outputs:) instead")
-  public static func tracks(_ opt: TrackExtractionOption) -> Self {
-    .tracks(outputs: opt.outputs)
-  }
-
-  @available(*, deprecated)
-  public struct TrackExtractionOption {
-    public init(outputs: [TrackOutput]) {
-      self.outputs = outputs
-    }
-    public let outputs: [TrackOutput]
-  }
-
   public struct TrackOutput {
     public init(trackID: Int, filename: String) {
       self.trackID = trackID
@@ -58,18 +40,8 @@ public enum MkvExtractionMode {
     public var trackID: Int
     public var filename: String
   }
-
-  @available(*, deprecated)
-  public struct ChapterExtractionOption {
-    public init(simple: Bool, outputFilename: String) {
-      self.simple = simple
-      self.outputFilename = outputFilename
-    }
-
-    public let simple: Bool
-    public let outputFilename: String
-  }
 }
+
 public struct MkvExtract: Executable {
   public init(filepath: String, extractions: [MkvExtractionMode]) {
     self.filepath = filepath
@@ -78,11 +50,11 @@ public struct MkvExtract: Executable {
 
   public static let executableName = "mkvextract"
 
-  public let filepath: String
+  public var filepath: String
 
-  public let extractions: [MkvExtractionMode]
+  public var extractions: [MkvExtractionMode]
 
-  public let parseFully: Bool = false
+  public var parseFully: Bool = false
 
   public var arguments: [String] {
     var arg = [filepath]
