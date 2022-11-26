@@ -43,7 +43,7 @@ public enum MkvExtractionMode {
 }
 
 public struct MkvExtract: Executable {
-  public init(filepath: String, extractions: [MkvExtractionMode]) {
+  public init(filepath: String, extractions: [MkvExtractionMode] = []) {
     self.filepath = filepath
     self.extractions = extractions
   }
@@ -53,8 +53,6 @@ public struct MkvExtract: Executable {
   public var filepath: String
 
   public var extractions: [MkvExtractionMode]
-
-  public var parseFully: Bool = false
 
   public var arguments: [String] {
     var arg = [filepath]

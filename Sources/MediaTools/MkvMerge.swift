@@ -2,9 +2,6 @@ import Foundation
 import ExecutableDescription
 import MediaUtility
 
-@available(*, deprecated, renamed: "MkvMerge")
-public typealias Mkvmerge = MkvMerge
-
 public struct MkvMerge: Executable {
 
   public init(global: GlobalOption, output: String, inputs: [Input]) {
@@ -73,13 +70,15 @@ extension MkvMerge {
     public var defaultLanguage: String?
 
     // 2.2. Segment info handling (global options)
-    // invalie now
+    private var segmentinfo: String?
+    private var segmentUID: String?
 
     // 2.3. Chapter and tag handling (global options)
     public var chapterLanguage: String?
-    public var chapterFile: String?
     public var generateChaptersMode: GenerateChaptersMode?
     public var chaptersNameTemplate: ChaptersNameTemplate?
+    public var chapterFile: String?
+    public var globalTagsFile: String?
 
     // 2.4. General output control (advanced global options)
     public var trackOrder: [TrackOrder]?
@@ -218,6 +217,7 @@ extension MkvMerge {
       case keep_track_statistics_tags
       case all_i_slices_are_key_frames
       case append_and_split_flac
+      case dont_normalize_parameter_sets
       case cow
     }
 
@@ -280,7 +280,9 @@ extension MkvMerge {
     public struct TrackOrder {
       public var fid: Int
       public var tid: Int
+
       var argument: String { "\(fid):\(tid)" }
+
       public init(fid: Int, tid: Int) {
         self.fid = fid
         self.tid = tid
@@ -295,12 +297,16 @@ extension MkvMerge {
       builder.add(flag: "--title", value: title)
       builder.add(flag: "--default-language", value: defaultLanguage)
 
+      builder.add(flag: "--segmentinfo", value: segmentinfo)
+      builder.add(flag: "--segment-uid", value: segmentUID)
+
       builder.add(flag: "--chapter-language", value: chapterLanguage)
-      builder.add(flag: "--chapters", value: chapterFile)
       builder.add(flag: "--generate-chapters", value: generateChaptersMode?.argument)
       builder.add(flag: "--generate-chapters-name-template", value: chaptersNameTemplate?.argument)
+      builder.add(flag: "--chapters", value: chapterFile)
+      builder.add(flag: "--global-tags", value: globalTagsFile)
 
-      builder.add(flag: "--track-order", value: trackOrder?.map { $0.argument }.joined(separator: ","))
+      builder.add(flag: "--track-order", value: trackOrder?.map(\.argument).joined(separator: ","))
 
       builder.add(flag: "--split", value: split?.argument)
       builder.add(flag: "--append-mode", value: appendMode?.argument)
