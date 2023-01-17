@@ -7,7 +7,7 @@ public struct FFmpeg: Executable {
     self.ios = ios
   }
 
-  public static let executableName: String = "ffmpeg"
+  public static var executableName: String { "ffmpeg" }
 
   public let global: GlobalOptions
 

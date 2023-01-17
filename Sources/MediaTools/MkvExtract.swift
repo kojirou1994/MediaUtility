@@ -48,7 +48,7 @@ public struct MkvExtract: Executable {
     self.extractions = extractions
   }
 
-  public static let executableName = "mkvextract"
+  public static var executableName: String { "mkvextract" }
 
   public var filepath: String
 

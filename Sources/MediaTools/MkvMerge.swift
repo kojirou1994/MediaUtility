@@ -10,7 +10,7 @@ public struct MkvMerge: Executable {
     self.inputs = inputs
   }
 
-  public static let executableName: String = "mkvmerge"
+  public static var executableName: String { "mkvmerge" }
 
   public var global: GlobalOption
 

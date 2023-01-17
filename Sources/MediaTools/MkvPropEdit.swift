@@ -3,7 +3,7 @@ import MediaUtility
 
 public struct MkvPropEdit: Executable {
 
-  public static let executableName: String = "mkvpropedit"
+  public static var executableName: String { "mkvpropedit" }
 
   public var parseMode: ParseMode? = nil
 
