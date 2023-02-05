@@ -32,7 +32,7 @@ public struct MediaInfo: Executable {
 
     builder.add(flag: "-f", when: full)
     if let output {
-      builder.add(flag: "--Output", value: output.rawValue)
+      builder.add(flag: "--Output=\(output.rawValue)")
     }
     builder.append(argumentsFrom: files)
 
