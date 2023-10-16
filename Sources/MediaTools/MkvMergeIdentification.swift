@@ -125,6 +125,7 @@ public struct MkvMergeIdentification: Decodable {
       public var codecPrivateData: String?
       public var codecPrivateLength: UInt?
       public var contentEncodingAlgorithms: String?
+      public var cropping: String?
       public var defaultDuration: UInt?
       public var defaultTrack: Bool?
       public var displayDimensions: String?
@@ -168,6 +169,7 @@ public struct MkvMergeIdentification: Decodable {
         case codecPrivateData = "codec_private_data"
         case codecPrivateLength = "codec_private_length"
         case contentEncodingAlgorithms = "content_encoding_algorithms"
+        case cropping
         case defaultDuration = "default_duration"
         case defaultTrack = "default_track"
         case displayDimensions = "display_dimensions"
