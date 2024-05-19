@@ -510,7 +510,7 @@ public extension FFmpeg.OutputOption {
     .init(flag: "-map_chapters", value: inputFileIndex.description)
   }
 
-  @inlinable static func frameCount(_ value: Int, streamSpecifier: FFmpeg.StreamSpecifier) -> Self {
+  @inlinable static func frameCount(_ value: Int, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
     .init(name: "frames", streamSpecifier, value.description)
   }
 }
