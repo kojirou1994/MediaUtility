@@ -2,26 +2,45 @@ import Foundation
 import ExecutableDescription
 
 public struct FFmpeg: Executable {
-  public init(global: GlobalOptions = .init(), ios: [FFmpeg.FFmpegIO] = []) {
+  public init(global: GlobalOptions = .init(), inputs: [Input] = [], outputs: [Output] = []) {
     self.global = global
-    self.ios = ios
+    self.inputs = inputs
+    self.outputs = outputs
   }
 
   public static var executableName: String { "ffmpeg" }
 
-  public let global: GlobalOptions
+  public var global: GlobalOptions
 
-  public var ios: [FFmpegIO]
+  public var inputs: [Input]
+
+  public var outputs: [Output]
 
   public var arguments: [String] {
     var args = [String]()
     args.append(contentsOf: global.arguments)
-    ios.forEach { io in
-      args.append(contentsOf: io.arguments)
+    inputs.forEach { input in
+      args.append(contentsOf: input.options)
+      args.append("-i")
+      args.append(input.url)
+    }
+
+    outputs.forEach { output in
+      args.append(contentsOf: output.options)
+      args.append(output.url)
     }
     return args
   }
 
+}
+
+extension Array where Element == String {
+  mutating func append(contentsOf options: some Collection<some _FFmpegIOOptions>) {
+    options.forEach { option in
+      append(option.flag)
+      option.value.map { append($0) }
+    }
+  }
 }
 
 // MARK: Global Options
@@ -288,163 +307,25 @@ extension FFmpeg {
 
 // MARK: Input/Output Options
 extension FFmpeg {
-  public struct FFmpegIO {
-    public static func input(url: String, options: [InputOutputOption] = []) -> Self {
-      .init(url: url, isInput: true, options: options)
+  public struct Input {
+    public init(url: String, options: [FFmpeg.InputOption] = []) {
+      self.url = url
+      self.options = options
     }
+    
+    public var url: String
+    public var options: [InputOption]
 
-    public static func output(url: String, options: [InputOutputOption] = []) -> Self {
-      .init(url: url, isInput: false, options: options)
+  }
+
+  public struct Output {
+    public init(url: String, options: [FFmpeg.OutputOption] = []) {
+      self.url = url
+      self.options = options
     }
 
     public var url: String
-    public let isInput: Bool
-    public var options: [InputOutputOption]
-
-    public var isOutput: Bool { !isInput }
-
-    var arguments: [String] {
-
-      func flag(_ name: String, _ streamSpecifier: StreamSpecifier? = nil) -> String {
-        "-\(name)\(streamSpecifier?.argument ?? "")"
-      }
-
-      var builder = ArgumentBuilder()
-      options.forEach { option in
-        func preconditionOutput() {
-          precondition(isOutput, "option \(option) must be output!")
-        }
-        func preconditionInput() {
-          precondition(isInput, "option \(option) must be input!")
-        }
-        switch option {
-        case let .codec(codec, streamSpecifier: streamSpecifier):
-          builder.add(flag: flag("c", streamSpecifier), value: codec)
-        case .format(let format):
-          builder.add(flag: flag("f"), value: format)
-        case .streamLoop(let number):
-          preconditionInput()
-          builder.add(flag: flag("stream_loop"), value: number)
-        case .duration(let duration):
-          builder.add(flag: flag("t"), value: duration)
-        case .map(inputFileID: let inputFileID, streamSpecifier: let streamSpecifier,
-                  isOptional: let isOptional, isNegativeMapping: let isNegativeMapping):
-          preconditionOutput()
-          var argument = isNegativeMapping ? "-" : ""
-          argument.append(inputFileID.description)
-          streamSpecifier.map { argument.append($0.argument) }
-          if isOptional {
-            argument.append("?")
-          }
-          builder.add(flag: "-map", value: argument)
-        case .filter(filtergraph: let filtergraph, streamSpecifier: let streamSpecifier):
-          preconditionOutput()
-          builder.add(flag: flag("filter", streamSpecifier), value: filtergraph)
-        case .audioChannels(let number, streamSpecifier: let streamSpecifier):
-          builder.add(flag: flag("ac", streamSpecifier), value: number)
-        case .strict(let level):
-          builder.add(flag: "-strict", value: level.rawValue)
-        case let .bitrate(bitrate, streamSpecifier: streamSpecifier):
-          preconditionOutput()
-          builder.add(flag: flag("b", streamSpecifier), value: bitrate)
-        case .pixelFormat(let pixelFormat, streamSpecifier: let streamSpecifier):
-          builder.add(flag: flag("pix_fmt", streamSpecifier), value: pixelFormat)
-        case .colorspace(let colorspace, streamSpecifier: let streamSpecifier):
-          preconditionOutput()
-          builder.add(flag: flag("colorspace", streamSpecifier), value: colorspace)
-        case .colorPrimaries(let colorPrimaries, streamSpecifier: let streamSpecifier):
-          preconditionOutput()
-          builder.add(flag: flag("color_primaries", streamSpecifier), value: colorPrimaries)
-        case .colorTransferCharacteristics(let value, streamSpecifier: let streamSpecifier):
-          preconditionOutput()
-          builder.add(flag: flag("color_trc", streamSpecifier), value: value)
-        case .hardwareAcceleration(let value, streamSpecifier: let streamSpecifier):
-          preconditionInput()
-          builder.add(flag: flag("hwaccel", streamSpecifier), value: value)
-        case .mapMetadata(outputSpec: let outputSpec, inputFileIndex: let inputFileIndex, inputSpec: let inputSpec):
-          preconditionOutput()
-          builder.add(flag: "-map_metadata\(outputSpec?.argument ?? "")", value: "\(inputFileIndex)\(inputSpec?.argument ?? "")")
-        case .mapChapters(inputFileIndex: let inputFileIndex):
-          preconditionOutput()
-          builder.add(flag: "-map_chapters", value: inputFileIndex)
-        case .avOption(name: let name, value: let value, streamSpecifier: let streamSpecifier):
-          builder.add(flag: flag(name, streamSpecifier), value: value)
-        case .nonStdOptions(let options):
-          options.forEach { (key, value) in
-            builder.add(flag: flag(key), value: value)
-          }
-        case .startPosition(let position):
-          builder.add(flag: "-ss", value: position)
-        case .endPosition(let position):
-          builder.add(flag: "-to", value: position)
-        case .frameCount(let count, streamSpecifier: let streamSpecifier):
-          preconditionOutput()
-          builder.add(flag: flag("frames", streamSpecifier), value: count)
-        case .frameSize(width: let width, height: let height, streamSpecifier: let streamSpecifier):
-          builder.add(flag: flag("s", streamSpecifier), value: "\(width)x\(height)")
-        case .raw(let raw):
-          builder.add(flag: raw)
-        }
-      }
-
-      if isInput {
-        builder.add(flag: "-i", value: url)
-      } else {
-        builder.add(flag: url)
-      }
-      return builder.arguments
-    }
-  }
-
-  public enum InputOutputOption {
-    /// Force input or output file format. The format is normally auto detected for input files and guessed from the file extension for output files, so this option is not needed in most cases.
-    case format(String)
-    /// Set number of times input stream shall be looped. Loop 0 means no loop, loop -1 means infinite loop.
-    case streamLoop(Int)
-    /*
-     Select an encoder (when used before an output file) or a decoder (when used before an input file) for one or more streams. codec is the name of a decoder/encoder or a special value copy (output only) to indicate that the stream is not to be re-encoded.
-
-     For example
-
-     ffmpeg -i INPUT -map 0 -c:v libx264 -c:a copy OUTPUT
-     encodes all video streams with libx264 and copies all audio streams.
-
-     For each stream, the last matching c option is applied, so
-
-     ffmpeg -i INPUT -map 0 -c copy -c:v:1 libx264 -c:a:137 libvorbis OUTPUT
-     will copy all the streams except the second video, which will be encoded with libx264, and the 138th audio, which will be encoded with libvorbis.
-     */
-    case codec(String, streamSpecifier: StreamSpecifier?)
-    case bitrate(String, streamSpecifier: StreamSpecifier)
-    /// When used as an input option (before -i), limit the duration of data read from the input file.
-    /// When used as an output option (before an output url), stop writing the output after its duration reaches duration.
-    /// duration must be a time duration specification, see (ffmpeg-utils)the Time duration section in the ffmpeg-utils(1) manual.
-    /// -to and -t are mutually exclusive and -t has priority.
-    case duration(String)
-    case startPosition(String)
-    case endPosition(String)
-    case frameCount(Int, streamSpecifier: StreamSpecifier)
-    case frameSize(width: Int32, height: Int32, streamSpecifier: StreamSpecifier?)
-    // TODO: sync_file_id not implement
-    case map(inputFileID: Int, streamSpecifier: StreamSpecifier?, isOptional: Bool, isNegativeMapping: Bool)
-    /// Create the filtergraph specified by filtergraph and use it to filter the stream.
-    case filter(filtergraph: String, streamSpecifier: StreamSpecifier?)
-    /// Set the number of audio channels. For output streams it is set by default to the number of input audio channels. For input streams this option only makes sense for audio grabbing devices and raw demuxers and is mapped to the corresponding demuxer options.
-    case audioChannels(Int, streamSpecifier: StreamSpecifier?)
-    case strict(level: StrictLevel)
-    /// Set pixel format. Use -pix_fmts to show all the supported pixel formats. If the selected pixel format can not be selected, ffmpeg will print a warning and select the best pixel format supported by the encoder. If pix_fmt is prefixed by a +, ffmpeg will exit with an error if the requested pixel format can not be selected, and automatic conversions inside filtergraphs are disabled. If pix_fmt is a single +, ffmpeg selects the same pixel format as the input (or graph output) and automatic conversions are disabled.
-    case pixelFormat(String, streamSpecifier: StreamSpecifier?)
-    case colorspace(String, streamSpecifier: StreamSpecifier?)
-    case colorPrimaries(String, streamSpecifier: StreamSpecifier?)
-    case colorTransferCharacteristics(String, streamSpecifier: StreamSpecifier?)
-    case hardwareAcceleration(String, streamSpecifier: StreamSpecifier?)
-    case mapMetadata(outputSpec: MetadataSpecifier?, inputFileIndex: Int, inputSpec: MetadataSpecifier?)
-    case mapChapters(inputFileIndex: Int)
-
-    case avOption(name: String, value: String, streamSpecifier: StreamSpecifier?)
-    case nonStdOptions([String : String])
-    case raw(String)
-
+    public var options: [OutputOption]
   }
 
   public enum StrictLevel: Int {
@@ -461,6 +342,7 @@ extension FFmpeg {
     case chapterIndex(Int)
     case programIndex(Int)
 
+    @usableFromInline
     var argument: String {
       switch self {
       case .global:
@@ -493,6 +375,7 @@ extension FFmpeg {
     }
 
     /// argument string, including the prefix ':'
+    @usableFromInline
     var argument: String {
       switch self {
       case .matchMetadata(let key, let value):
@@ -519,6 +402,7 @@ extension FFmpeg {
     case data
     case attachment
 
+    @usableFromInline
     var streamSpecifier: String {
       switch self {
       case .attachment: return "t"
@@ -532,6 +416,172 @@ extension FFmpeg {
   }
 }
 
+// TODO: rename to nested protocol FFmpeg.IOOptions
+public protocol _FFmpegIOOptions {
+  init(flag: String, value: String?)
+  var flag: String { get }
+  var value: String? { get }
+}
+
+extension FFmpeg {
+  public struct InputOption: _FFmpegIOOptions  {
+    public let flag: String
+    public let value: String?
+
+    @_alwaysEmitIntoClient
+    public init(flag: String, value: String?) {
+      self.flag = flag
+      self.value = value
+    }
+  }
+
+  public struct OutputOption: _FFmpegIOOptions  {
+    public let flag: String
+    public let value: String?
+
+    @_alwaysEmitIntoClient
+    public init(flag: String, value: String?) {
+      self.flag = flag
+      self.value = value
+    }
+  }
+}
+
+public extension _FFmpegIOOptions {
+  @inlinable
+  init(name: String, _ streamSpecifier: FFmpeg.StreamSpecifier?, _ value: String) {
+    self.init(flag: "-\(name)\(streamSpecifier?.argument ?? "")", value: value)
+  }
+}
+
+public extension FFmpeg.InputOption {
+  /// Set number of times input stream shall be looped. Loop 0 means no loop, loop -1 means infinite loop.
+  @inlinable static func streamLoop(_ value: Int) -> Self {
+    .init(flag: "-stream_loop", value: value.description)
+  }
+
+  @inlinable static func hardwareAcceleration(_ value: String, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
+    .init(name: "-hwaccel", streamSpecifier, value)
+  }
+
+  @inlinable static func reinitFilter(_ value: Bool, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
+    .init(name: "-reinit_filter", streamSpecifier, value ? "1" : "0")
+  }
+}
+public extension FFmpeg.OutputOption {
+  // TODO: sync_file_id not implement
+  @inlinable static func map(inputFileID: Int, streamSpecifier: FFmpeg.StreamSpecifier?, isOptional: Bool, isNegativeMapping: Bool) -> Self {
+    var argument = isNegativeMapping ? "-" : ""
+    argument.append(inputFileID.description)
+    streamSpecifier.map { argument.append($0.argument) }
+    if isOptional {
+      argument.append("?")
+    }
+    return .init(flag: "-map", value: argument)
+  }
+
+  /// Create the filtergraph specified by filtergraph and use it to filter the stream.
+  @inlinable static func filter(filtergraph: String, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
+    .init(name: "filter", streamSpecifier, filtergraph)
+  }
+
+  @inlinable static func bitrate(_ value: String, streamSpecifier: FFmpeg.StreamSpecifier) -> Self {
+    .init(name: "b", streamSpecifier, value)
+  }
+
+  @inlinable static func colorspace(_ value: String, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
+    .init(name: "colorspace", streamSpecifier, value)
+  }
+
+  @inlinable static func colorPrimaries(_ value: String, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
+    .init(name: "color_primaries", streamSpecifier, value)
+  }
+
+  @inlinable static func colorTransferCharacteristics(_ value: String, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
+    .init(name: "color_trc", streamSpecifier, value)
+  }
+
+  /// set inputFileIndex to -1 to strip all metadata
+  @inlinable static func mapMetadata(outputSpec: FFmpeg.MetadataSpecifier?, inputFileIndex: Int, inputSpec: FFmpeg.MetadataSpecifier?) -> Self {
+    .init(flag: "-map_metadata\(outputSpec?.argument ?? "")", value: "\(inputFileIndex)\(inputSpec?.argument ?? "")")
+  }
+
+  @inlinable static func mapChapters(inputFileIndex: Int) -> Self {
+    .init(flag: "-map_chapters", value: inputFileIndex.description)
+  }
+
+  @inlinable static func frameCount(_ value: Int, streamSpecifier: FFmpeg.StreamSpecifier) -> Self {
+    .init(name: "frames", streamSpecifier, value.description)
+  }
+}
+
+public extension _FFmpegIOOptions {
+  /// Force input or output file format. The format is normally auto detected for input files and guessed from the file extension for output files, so this option is not needed in most cases.
+  @inlinable static func format(_ value: String) -> Self {
+    .init(flag: "f", value: value)
+  }
+  /*
+   Select an encoder (when used before an output file) or a decoder (when used before an input file) for one or more streams. codec is the name of a decoder/encoder or a special value copy (output only) to indicate that the stream is not to be re-encoded.
+
+   For example
+
+   ffmpeg -i INPUT -map 0 -c:v libx264 -c:a copy OUTPUT
+   encodes all video streams with libx264 and copies all audio streams.
+
+   For each stream, the last matching c option is applied, so
+
+   ffmpeg -i INPUT -map 0 -c copy -c:v:1 libx264 -c:a:137 libvorbis OUTPUT
+   will copy all the streams except the second video, which will be encoded with libx264, and the 138th audio, which will be encoded with libvorbis.
+   */
+  @inlinable static func codec(_ value: String, streamSpecifier: FFmpeg.StreamSpecifier? = nil) -> Self {
+    .init(name: "c", streamSpecifier, value)
+  }
+
+  /// When used as an input option (before -i), limit the duration of data read from the input file.
+  /// When used as an output option (before an output url), stop writing the output after its duration reaches duration.
+  /// duration must be a time duration specification, see (ffmpeg-utils)the Time duration section in the ffmpeg-utils(1) manual.
+  /// -to and -t are mutually exclusive and -t has priority.
+  @inlinable static func duration(_ value: String) -> Self {
+    .init(flag: "-t", value: value)
+  }
+  @inlinable static func startPosition(_ value: String) -> Self {
+    .init(flag: "-ss", value: value)
+  }
+  @inlinable static func endPosition(_ value: String) -> Self {
+    .init(flag: "-to", value: value)
+  }
+
+  @inlinable static func frameSize(width: Int32, height: Int32, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
+    .init(name: "s", streamSpecifier, "\(width)x\(height)")
+  }
+
+  /// Set the number of audio channels. For output streams it is set by default to the number of input audio channels. For input streams this option only makes sense for audio grabbing devices and raw demuxers and is mapped to the corresponding demuxer options.
+  @inlinable static func audioChannels(_ value: Int, streamSpecifier: FFmpeg.StreamSpecifier? = nil) -> Self {
+    .init(name: "ac", streamSpecifier, value.description)
+  }
+  @inlinable static func strict(level: FFmpeg.StrictLevel) -> Self {
+    .init(flag: "-strict", value: level.rawValue.description)
+  }
+  /// Set pixel format. Use -pix_fmts to show all the supported pixel formats. If the selected pixel format can not be selected, ffmpeg will print a warning and select the best pixel format supported by the encoder. If pix_fmt is prefixed by a +, ffmpeg will exit with an error if the requested pixel format can not be selected, and automatic conversions inside filtergraphs are disabled. If pix_fmt is a single +, ffmpeg selects the same pixel format as the input (or graph output) and automatic conversions are disabled.
+  @inlinable static func pixelFormat(_ value: String, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
+    .init(name: "pix_fmt", streamSpecifier, value)
+  }
+
+  @inlinable static func avOption(name: String, value: String, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
+    .init(name: name, streamSpecifier, value)
+  }
+
+  @available(*, unavailable)
+  @inlinable static func nonStdOptions(_ value: [String : String]) -> Self {
+    fatalError()
+  }
+
+  @inlinable static func raw(_ value: String) -> Self {
+    .init(flag: value, value: nil)
+  }
+}
+
+
 extension FFmpeg.GlobalOptions.LogLevel.Flag: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
     self.init(rawValue: value)
@@ -539,7 +589,6 @@ extension FFmpeg.GlobalOptions.LogLevel.Flag: ExpressibleByStringLiteral {
 }
 
 public extension FFmpeg.GlobalOptions.LogLevel.Flag {
-  @inlinable
   @_alwaysEmitIntoClient
   static var `repeat`: Self { "repeat" }
 
