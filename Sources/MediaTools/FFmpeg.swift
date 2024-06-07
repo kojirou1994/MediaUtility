@@ -518,7 +518,7 @@ public extension FFmpeg.OutputOption {
 public extension _FFmpegIOOptions {
   /// Force input or output file format. The format is normally auto detected for input files and guessed from the file extension for output files, so this option is not needed in most cases.
   @inlinable static func format(_ value: String) -> Self {
-    .init(flag: "f", value: value)
+    .init(flag: "-f", value: value)
   }
   /*
    Select an encoder (when used before an output file) or a decoder (when used before an input file) for one or more streams. codec is the name of a decoder/encoder or a special value copy (output only) to indicate that the stream is not to be re-encoded.
