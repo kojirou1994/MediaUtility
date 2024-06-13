@@ -1,5 +1,7 @@
 import ExecutableDescription
 import Precondition
+import KwiftExtension
+import Foundation
 
 public struct VsPipe: Executable {
 
@@ -138,11 +140,11 @@ extension VsPipe {
     }
 
     public static func parse(_ string: String) throws -> Self {
-      var props = [String: Substring]()
+      var props = [Substring: String]()
       for line in string.lazySplit(separator: "\n") {
         let parts = line.split(separator: ":", maxSplits: 1)
         assert(parts.count == 2, "invalid vspipe info line: \(line)")
-        props[String(parts[0])] = parts[1].trimming(while: \.isWhitespace)
+        props[parts[0]] = parts[1].trimmingCharacters(in: .whitespaces)
       }
 
       return try .init(

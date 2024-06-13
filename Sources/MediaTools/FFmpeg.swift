@@ -441,6 +441,7 @@ extension FFmpeg {
 
     @_alwaysEmitIntoClient
     public init(flag: String, value: String?) {
+      assert(flag.hasPrefix("-"))
       self.flag = flag
       self.value = value
     }

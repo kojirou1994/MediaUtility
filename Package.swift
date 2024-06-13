@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version: 5.8
 
 import PackageDescription
 
@@ -8,16 +8,12 @@ let package = Package(
     .macOS(.v10_15)
   ],
   products: [
-    .library(
-      name: "MediaUtility",
-      targets: ["MediaUtility"]),
-    .library(
-      name: "MediaTools",
-      targets: ["MediaTools"]),
+    .library(name: "MediaUtility", targets: ["MediaUtility"]),
+    .library(name: "MediaTools", targets: ["MediaTools"]),
   ],
   dependencies: [
     .package(url: "https://github.com/kojirou1994/Kwift.git", from: "1.0.0"),
-    .package(url: "https://github.com/kojirou1994/Executable.git", from: "0.6.0"),
+    .package(url: "https://github.com/kojirou1994/Executable.git", from: "0.7.0"),
     .package(url: "https://github.com/MaxDesiatov/XMLCoder.git", .upToNextMajor(from: "0.13.0"))
   ],
   targets: [
@@ -29,7 +25,7 @@ let package = Package(
       name: "MediaTools",
       dependencies: [
         .product(name: "KwiftExtension", package: "Kwift"),
-        .product(name: "TSCExecutableLauncher", package: "Executable"),
+        .product(name: "ExecutableDescription", package: "Executable"),
         .product(name: "XMLCoder", package: "XMLCoder"),
         .target(name: "MediaUtility"),
       ]),

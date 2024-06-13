@@ -1,8 +1,8 @@
-import TSCExecutableLauncher
+import ExecutableDescription
 
 public struct FlacEncoder: Executable {
 
-  public static let executableName: String = "flac"
+  public static var executableName: String { "flac" }
 
   public let input: String
 
@@ -51,17 +51,13 @@ public struct FlacEncoder: Executable {
 
 }
 
-public struct FlacMD5 {
+extension FlacEncoder {
 
-  @available(macOS 10.15, *)
-  public static func calculate(inputs: [String]) throws -> [String] {
-    let md5 = try AnyExecutable(
+  public static func md5Calculator(inputs: [String]) -> AnyExecutable {
+    AnyExecutable(
       executableName: "metaflac",
       arguments: ["--no-filename", "--show-md5sum"] + inputs
-    ).launch(use: TSCExecutableLauncher()).output.get()
-    return md5.split(separator: UInt8(ascii: "\n")).map {
-      String(decoding: $0, as: UTF8.self)
-    }
+    )
   }
 
 }
