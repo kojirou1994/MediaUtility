@@ -18,15 +18,15 @@ public struct FFmpegCopyMuxer: Executable {
       self.rawValue = rawValue
     }
 
-    public static let video    = Self(rawValue: 1 << 0)
-    public static let audio    = Self(rawValue: 1 << 1)
-    public static let subtitle = Self(rawValue: 1 << 2)
-    public static let copyAll: Self = [.video, .audio, .subtitle]
+    public static var video: Self      { .init(rawValue: 1 << 0) }
+    public static var audio: Self      { .init(rawValue: 1 << 1) }
+    public static var subtitle: Self   { .init(rawValue: 1 << 2) }
+    public static var copyAll: Self    { [.video, .audio, .subtitle] }
 
     @available(*, deprecated, renamed: "video")
-    public static let videoOnly = video
+    public static var videoOnly: Self { video }
     @available(*, deprecated, renamed: "audio")
-    public static let audioOnly = audio
+    public static var audioOnly: Self { audio }
   }
 
   public init(input: String, output: String) {

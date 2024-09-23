@@ -294,7 +294,7 @@ extension FFmpeg {
 
         public let rawValue: String
 
-        public static let videotoolbox: Self = "videotoolbox"
+        public static var videotoolbox: Self { "videotoolbox" }
       }
 
       public enum DeviceType {
