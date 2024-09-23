@@ -17,7 +17,7 @@ public struct Chapter {
   /// chapter line like 00:00:00.000 ChapterName
   /// - Parameter fileURL: file location
   public init(fileURL: URL) throws {
-    let content = try String(contentsOf: fileURL)
+    let content = try String(contentsOf: fileURL, encoding: .utf8)
     nodes = content.split(separator: "\n")
       .compactMap { line -> ChapterNode? in
         if line.isEmpty {
@@ -58,7 +58,7 @@ public struct Chapter {
   }
 
   public init(ogmFileURL: URL) throws {
-    let str = try String(contentsOf: ogmFileURL)
+    let str = try String(contentsOf: ogmFileURL, encoding: .utf8)
     let lines = str.split(separator: "\n")
     guard lines.count > 0 else {
       throw OgmParseError.empty
