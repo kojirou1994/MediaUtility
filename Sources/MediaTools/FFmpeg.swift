@@ -462,11 +462,11 @@ public extension FFmpeg.InputOption {
   }
 
   @inlinable static func hardwareAcceleration(_ value: String, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
-    .init(name: "-hwaccel", streamSpecifier, value)
+    .init(name: "hwaccel", streamSpecifier, value)
   }
 
   @inlinable static func reinitFilter(_ value: Bool, streamSpecifier: FFmpeg.StreamSpecifier?) -> Self {
-    .init(name: "-reinit_filter", streamSpecifier, value ? "1" : "0")
+    .init(name: "reinit_filter", streamSpecifier, value ? "1" : "0")
   }
 }
 public extension FFmpeg.OutputOption {
