@@ -1,6 +1,6 @@
 import ExecutableDescription
 
-public struct MediaInfo: Executable {
+public struct MediaInfo: Executable, IncrementalArguments {
 
   public static var executableName: String { "mediainfo" }
 
@@ -27,16 +27,12 @@ public struct MediaInfo: Executable {
     case PBCore2
   }
 
-  public var arguments: [String] {
-    var builder = ArgumentBuilder()
-
+  public func writeArguments(to builder: inout ArgumentsBuilder) {
     builder.add(flag: "-f", when: full)
     if let output {
       builder.add(flag: "--Output=\(output.rawValue)")
     }
-    builder.append(argumentsFrom: files)
-
-    return builder.arguments
+    builder.append(arguments: files)
   }
 
 }

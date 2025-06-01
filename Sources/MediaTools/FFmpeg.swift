@@ -1,7 +1,7 @@
 import Foundation
 import ExecutableDescription
 
-public struct FFmpeg: Executable {
+public struct FFmpeg: Executable, IncrementalArguments {
   public init(global: GlobalOptions = .init(), inputs: [Input] = [], outputs: [Output] = []) {
     self.global = global
     self.inputs = inputs
@@ -16,36 +16,35 @@ public struct FFmpeg: Executable {
 
   public var outputs: [Output]
 
-  public var arguments: [String] {
-    var args = [String]()
-    args.append(contentsOf: global.arguments)
+  public func writeArguments(to builder: inout ArgumentsBuilder) {
+    global.writeArguments(to: &builder)
     inputs.forEach { input in
-      args.append(contentsOf: input.options)
-      args.append("-i")
-      args.append(input.url)
+      builder.append(input.options)
+      builder.add(flag: "-i", value: input.url)
     }
 
     outputs.forEach { output in
-      args.append(contentsOf: output.options)
-      args.append(output.url)
+      builder.append(output.options)
+      builder.add(flag: output.url)
     }
-    return args
   }
 
 }
 
-extension Array where Element == String {
-  mutating func append(contentsOf options: some Collection<some _FFmpegIOOptions>) {
+extension ArgumentsBuilder {
+  mutating func append(_ options: some Collection<some _FFmpegIOOptions>) {
     options.forEach { option in
-      append(option.flag)
-      option.value.map { append($0) }
+      add(flag: option.flag)
+      if let value = option.value {
+        add(flag: value)
+      }
     }
   }
 }
 
 // MARK: Global Options
 extension FFmpeg {
-  public struct GlobalOptions {
+  public struct GlobalOptions: IncrementalArguments {
     public init(
       logLevel: LogLevel? = nil,
       hideBanner: Bool = false,
@@ -166,14 +165,13 @@ extension FFmpeg {
 
     public var initHardwareDevices: [HardwareDevice]
 
-    var arguments: [String] {
-      var builder = ArgumentBuilder()
-      builder.add(flag: "-loglevel", value: logLevel)
+    public func writeArguments(to builder: inout ArgumentsBuilder) {
+      builder.add(flag: "-loglevel", value: logLevel?.argument)
       builder.add(flag: "-hide_banner", when: hideBanner)
       builder.add(flag: "-cpuflags", value: cpuflags)
       builder.add(flag: "-filter_threads", value: filterThreadNumber)
       builder.add(flag: "--filter_complex_threads", value: filterComplexThreadNumber)
-      if let overwrite = self.overwrite {
+      if let overwrite {
         builder.add(flag: "-\(overwrite ? "y" : "n")")
       }
       builder.add(flag: "-filter_complex_script", value: filterComplextScriptFilename)
@@ -194,12 +192,11 @@ extension FFmpeg {
       builder.add(flag: "-progress", value: progressUrl)
       builder.add(flag: "-nostdin", when: !enableStdin)
       initHardwareDevices.forEach { hwDevice in
-        builder.add(flag: "-init_hw_device", value: hwDevice)
+        builder.add(flag: "-init_hw_device", value: hwDevice.argument)
       }
-      return builder.arguments
     }
 
-    public struct LogLevel: CustomArgumentConvertible {
+    public struct LogLevel {
       public init(enabledFlags: [Flag] = [], disabledFlags: [Flag] = [], level: Level? = nil) {
         self.enabledFlags = enabledFlags
         self.disabledFlags = disabledFlags
@@ -246,7 +243,7 @@ extension FFmpeg {
       }
     }
 
-    public struct HardwareDevice: CustomArgumentConvertible {
+    public struct HardwareDevice {
       var argument: String {
         var result = type.rawValue
         if !name.isEmpty {
@@ -451,6 +448,7 @@ extension FFmpeg {
 public extension _FFmpegIOOptions {
   @inlinable
   init(name: String, _ streamSpecifier: FFmpeg.StreamSpecifier?, _ value: String) {
+    assert(!name.isEmpty && name.first != "-")
     self.init(flag: "-\(name)\(streamSpecifier?.argument ?? "")", value: value)
   }
 }

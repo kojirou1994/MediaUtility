@@ -13,7 +13,7 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/kojirou1994/Kwift.git", from: "1.0.0"),
-    .package(url: "https://github.com/kojirou1994/Executable.git", from: "0.7.0"),
+    .package(url: "https://github.com/kojirou1994/Executable.git", branch: "master"),
     .package(url: "https://github.com/MaxDesiatov/XMLCoder.git", .upToNextMajor(from: "0.13.0"))
   ],
   targets: [

@@ -1,7 +1,7 @@
 import ExecutableDescription
 import MediaUtility
 
-public struct MkvPropEdit: Executable {
+public struct MkvPropEdit: Executable, IncrementalArguments {
 
   public static var executableName: String { "mkvpropedit" }
 
@@ -22,8 +22,7 @@ public struct MkvPropEdit: Executable {
     self.filepath = filepath
   }
 
-  public var arguments: [String] {
-    var builder = ArgumentBuilder()
+  public func writeArguments(to builder: inout ArgumentsBuilder) {
 
     builder.add(flag: "--parse-mode", value: parseMode)
     builder.add(flag: filepath)
@@ -54,10 +53,7 @@ public struct MkvPropEdit: Executable {
     }
     builder.add(flag: "--chapters", value: chapter)
 
-
     builder.add(flag: "--verbose", when: verbose)
-
-    return builder.arguments
   }
 }
 
@@ -90,7 +86,7 @@ extension MkvPropEdit {
     }
   }
 
-  public enum EditSelector: CustomArgumentConvertible {
+  public enum EditSelector: CustomStringConvertible {
     case segmentInformation
     case track(TrackSelector)
     public enum TrackSelector {
@@ -100,7 +96,7 @@ extension MkvPropEdit {
       case trackNumber(Int)
     }
 
-    var argument: String {
+    public var description: String {
       switch self {
       case .segmentInformation: return "info"
       case .track(let selector):

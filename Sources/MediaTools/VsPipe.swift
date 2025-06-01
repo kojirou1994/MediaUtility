@@ -3,7 +3,7 @@ import Precondition
 import KwiftExtension
 import Foundation
 
-public struct VsPipe: Executable {
+public struct VsPipe: Executable, IncrementalArguments {
 
   public static var executableName: String { "vspipe" }
 
@@ -85,8 +85,7 @@ public struct VsPipe: Executable {
     case y4m, wav, w64
   }
 
-  public var arguments: [String] {
-    var builder = ArgumentBuilder()
+  public func writeArguments(to builder: inout ArgumentsBuilder) {
     builder.add(flag: "-s", value: start)
     builder.add(flag: "-e", value: end)
     builder.add(flag: "-o", value: outputIndex)
@@ -107,7 +106,6 @@ public struct VsPipe: Executable {
       builder.add(flag: script)
       builder.add(flag: option.rawValue)
     }
-    return builder.arguments
   }
 }
 

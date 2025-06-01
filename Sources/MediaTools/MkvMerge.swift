@@ -2,7 +2,7 @@ import Foundation
 import ExecutableDescription
 import MediaUtility
 
-public struct MkvMerge: Executable {
+public struct MkvMerge: Executable, IncrementalArguments {
 
   public init(global: GlobalOption, output: String, inputs: [Input]) {
     self.global = global
@@ -18,14 +18,10 @@ public struct MkvMerge: Executable {
 
   public var inputs: [Input]
 
-  public var arguments: [String] {
-
-    var builder = ArgumentBuilder()
-    builder.append(argumentsFrom: global.arguments)
+  public func writeArguments(to builder: inout ArgumentsBuilder) {
+    global.writeArguments(to: &builder)
     builder.add(flag: "--output", value: output)
-    inputs.forEach { input in
-      builder.append(argumentsFrom: input.arguments)
-    }
+    inputs.forEach { $0.writeArguments(to: &builder) }
 
     if builder.arguments.count >= 4096 {
       let optionsFile = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -33,9 +29,8 @@ public struct MkvMerge: Executable {
       try! JSONSerialization.data(
         withJSONObject: builder.arguments, options: [.prettyPrinted]
       ).write(to: optionsFile)
-      return ["@\(optionsFile.path)"]
-    } else {
-      return builder.arguments
+      builder = .init() // clear all
+      builder.add(flag: "@\(optionsFile.path)")
     }
   }
 
@@ -43,7 +38,7 @@ public struct MkvMerge: Executable {
 
 // MARK: GlobalOption
 extension MkvMerge {
-  public struct GlobalOption {
+  public struct GlobalOption: IncrementalArguments {
 
     public init(verbose: Bool = false, quiet: Bool, webm: Bool = false, title: String? = nil, defaultLanguage: String? = nil, chapterLanguage: String? = nil, chapterFile: String? = nil, generateChaptersMode: MkvMerge.GlobalOption.GenerateChaptersMode? = nil, chaptersNameTemplate: MkvMerge.GlobalOption.ChaptersNameTemplate? = nil, trackOrder: [MkvMerge.GlobalOption.TrackOrder]? = nil, split: MkvMerge.GlobalOption.Split? = nil, flushOnClose: Bool = false, debug: String? = nil, experimentalFeatures: [MkvMerge.GlobalOption.ExperimentFeature]? = nil) {
       self.verbose = verbose
@@ -289,8 +284,7 @@ extension MkvMerge {
       }
     }
 
-    var arguments: [String] {
-      var builder = ArgumentBuilder()
+    public func writeArguments(to builder: inout ArgumentsBuilder) {
       builder.add(flag: "--verbose", when: verbose)
       builder.add(flag: "--quiet", when: quiet)
       builder.add(flag: "--webm", when: webm)
@@ -315,15 +309,14 @@ extension MkvMerge {
       builder.add(flag: "--debug", value: debug)
       builder.add(flag: "--engage", value: experimentalFeatures?.map(\.rawValue).joined(separator: ","))
 
-      return builder.arguments
     }
   }
 }
 
 // MARK: Input
 extension MkvMerge {
-  public struct Input {
-    public enum InputOption {
+  public struct Input: IncrementalArguments {
+    public enum InputOption: IncrementalArguments {
       public enum TrackSelect {
         case empty
         case removeAll
@@ -393,78 +386,78 @@ extension MkvMerge {
       case trackName(tid: Int, name: String)
       case language(tid: Int, language: String)
 
-      var arguments: [String] {
+      public func writeArguments(to builder: inout ArgumentsBuilder) {
         switch self {
         case .audioTracks(let v):
           let i = v.checked
           switch i {
           case .empty:
-            return []
+            break
           case .removeAll:
-            return ["--no-audio"]
+            builder.add(flag: "--no-audio")
           default:
-            return ["--audio-tracks", i.argument]
+            builder.add(flag: "--audio-tracks", value: i.argument)
           }
         case .videoTracks(let v):
           let i = v.checked
           switch i {
           case .empty:
-            return []
+            break
           case .removeAll:
-            return ["--no-video"]
+            builder.add(flag: "--no-video")
           default:
-            return ["--video-tracks", i.argument]
+            builder.add(flag: "--video-tracks", value: i.argument)
           }
         case .subtitleTracks(let v):
           let i = v.checked
           switch i {
           case .empty:
-            return []
+            break
           case .removeAll:
-            return ["--no-subtitles"]
+            builder.add(flag: "--no-subtitles")
           default:
-            return ["--subtitle-tracks", i.argument]
+            builder.add(flag: "--subtitle-tracks", value: i.argument)
           }
         case .buttonTracks(let v):
           let i = v.checked
           switch i {
           case .empty:
-            return []
+            break
           case .removeAll:
-            return ["--no-buttons"]
+            builder.add(flag: "--no-buttons")
           default:
-            return ["--button-tracks", i.argument]
+            builder.add(flag: "--button-tracks", value: i.argument)
           }
         case .trackTags(let v):
           let i = v.checked
           switch i {
           case .empty:
-            return []
+            break
           case .removeAll:
-            return ["--no-track-tags"]
+            builder.add(flag: "--no-track-tags")
           default:
-            return ["--track-tags", i.argument]
+            builder.add(flag: "--track-tags", value: i.argument)
           }
         case .attachments(let v):
           let i = v.checked
           switch i {
           case .empty:
-            return []
+            break
           case .removeAll:
-            return ["--no-attachments"]
+            builder.add(flag: "--no-attachments")
           default:
-            return ["--attachments", i.argument]
+            builder.add(flag: "--attachments", value: i.argument)
           }
         case .noChapters:
-          return ["--no-chapters"]
+          builder.add(flag: "--no-chapters")
         case .noGlobalTags:
-          return ["--no-global-tags"]
+          builder.add(flag: "--no-global-tags")
         case let .flag(tid: tid, flag, enabled):
-          return ["--\(flag.rawValue)-flag", "\(tid):\(enabled ? "1" : "0")"]
+          builder.add(flag: "--\(flag.rawValue)-flag", value: "\(tid):\(enabled ? "1" : "0")")
         case .trackName(let tid, let name):
-          return ["--track-name", "\(tid):\(name)"]
+          builder.add(flag: "--track-name", value: "\(tid):\(name)")
         case .language(let tid, language: let lang):
-          return ["--language", "\(tid):\(lang)"]
+          builder.add(flag: "--language", value: "\(tid):\(lang)")
         }
       }
     }
@@ -483,16 +476,11 @@ extension MkvMerge {
       self.options = options
     }
 
-    var arguments: [String] {
-      var r = options.flatMap { $0.arguments }
-      if append {
-        r.append("+")
-      }
-      if !lookForOtherParts {
-        r.append("=")
-      }
-      r.append(file)
-      return r
+    public func writeArguments(to builder: inout ArgumentsBuilder) {
+      options.forEach { $0.writeArguments(to: &builder) }
+      builder.add(flag: "+", when: append)
+      builder.add(flag: "=", when: !lookForOtherParts)
+      builder.add(flag: file)
     }
   }
 }
