@@ -1,4 +1,3 @@
-import Foundation
 import ExecutableDescription
 
 public struct FFmpeg: Executable, IncrementalArguments {

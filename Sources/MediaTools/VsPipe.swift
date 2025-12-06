@@ -1,7 +1,6 @@
 import ExecutableDescription
 import Precondition
 import KwiftExtension
-import Foundation
 
 public struct VsPipe: Executable, IncrementalArguments {
 
